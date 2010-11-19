@@ -1,0 +1,39 @@
+[
+
+        {
+                "id":           "cpUser",
+                "label":        "Username",
+                "type":         "text",
+                "default":      "",
+        },
+
+        {
+                "id":           "cpPass",
+                "label":        "Password",
+                "type":         "text",
+                "option":       "hidden",
+                "default":      "",
+        },
+
+        {
+                "id":           "cpIP",
+                "label":        "CouchPotato IP",
+                "type":         "text",
+                "default":      "0.0.0.0",
+        },
+        
+        {
+                "id":           "cpPort",
+                "label":        "CouchPotato Port",
+                "type":         "text",
+                "default":      "5000",
+        },
+        
+        {
+                "id":           "ytfmt",
+                "type":         "enum",
+                "label":        "Max. quality of YouTube Trailer videos (if available)",
+                "values":       ["Standard", "Medium", "High", "720p", "1080p"],
+                "default":      "1080p"
+        }
+]
