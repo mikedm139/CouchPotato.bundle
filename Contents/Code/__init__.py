@@ -19,7 +19,7 @@ DL_ICON       = 'Plex_256x256.png'
 MOVIE_ICON    = 'movie-reel.jpg'
 THEATRE_ICON  = 'popcorn.jpg'
 BD_ICON       = 'BD_icon.jpg'
-CP_URL        = 'http://'+Prefs['cpIP']+':'+Prefs['cpPort']
+#CP_URL        = 'http://'+Prefs['cpIP']+':'+Prefs['cpPort']
 
 #TRAILER RELATED GLOBAL VARIABLES#
 ##BORROWED FROM AVForums PLUGIN##
@@ -42,7 +42,7 @@ def Start():
     DirectoryItem.thumb = R(ICON)
     HTTP.CacheTime=3600
     if Prefs['cpUser'] and Prefs['cpPass']:
-        HTTP.SetPassword(url=CP_URL, username=Prefs['cpUser'], password=Prefs['cpPass'])
+        HTTP.SetPassword(url=Get_CP_URL(), username=Prefs['cpUser'], password=Prefs['cpPass'])
 
 ####################################################################################################
 
@@ -86,7 +86,7 @@ def MoviesMenu(sender):
 
 def WantedMenu(sender):
     '''Scrape wanted movies from CouchPotato and populate the list with results'''
-    url = CP_URL  + '/movie/'
+    url = Get_CP_URL()  + '/movie/'
     dir = MediaContainer(viewGroup="InfoList", title2="Wanted", cacheTime=0)
     wantedPage = HTML.ElementFromURL(url, errors='ignore')
     
@@ -114,7 +114,7 @@ def WantedMenu(sender):
 def WaitingMenu(sender):
     '''Scrape waiting movies from CouchPotato and populate the list with results.
         Note: waiting movies differ from wanted movies only by one tag'''
-    url = CP_URL + '/movie/'
+    url = Get_CP_URL() + '/movie/'
     dir = MediaContainer(viewGroup="InfoList", title2="Waiting", cacheTime=0)
     wantedPage = HTML.ElementFromURL(url, errors='ignore')
     
@@ -147,7 +147,7 @@ def WaitingMenu(sender):
 
 def SnatchedMenu(sender):
     '''Scrape snatched movies from CouchPotato and populate the list with results'''
-    url = CP_URL + '/movie/'
+    url = Get_CP_URL() + '/movie/'
     dir = MediaContainer(viewGroup="InfoList", title2="Snatched", cacheTime=0)
     wantedPage = HTML.ElementFromURL(url, errors='ignore')
     thumb = R(SNATCHED_ICON)
@@ -165,7 +165,7 @@ def SnatchedMenu(sender):
 
 def DownloadedMenu(sender):
     '''Scrape downloaded movies from CouchPotato and populate the list with results'''
-    url = CP_URL + '/movie/'
+    url = Get_CP_URL() + '/movie/'
     dir = MediaContainer(viewGroup="InfoList", title2="Downloaded", cacheTime=0)
     wantedPage = HTML.ElementFromURL(url, errors='ignore')
     thumb = R(DL_ICON)
@@ -203,7 +203,7 @@ def SnatchedList(sender, key):
 
 def ForceRefresh(sender, key):
     '''Force CouchPotato to refresh info and search for the selected movie'''
-    url = CP_URL + '/cron/forceSingle/?id=' + key
+    url = Get_CP_URL() + '/cron/forceSingle/?id=' + key
     Log('Forcecheck url: ' + url)
     result = HTTP.Request(url).content
     return MessageContainer("CouchPotato", L('Forcing refresh/search'))
@@ -212,7 +212,7 @@ def ForceRefresh(sender, key):
 
 def RemoveMovie(sender, key):
     '''Tell CouchPotato to remove the selected movie from the wanted list'''
-    url = CP_URL + '/movie/delete/?id=' + key
+    url = Get_CP_URL() + '/movie/delete/?id=' + key
     Log('DeleteMovie url: ' + url)
     result = HTTP.Request(url).content
     return MessageContainer("CouchPotato", L('Deleting from wanted list'))
@@ -221,7 +221,7 @@ def RemoveMovie(sender, key):
 
 def DownloadComplete(sender, key):
     '''Tell CouchPotato to mark the selected movie as a completed download'''
-    url = CP_URL + '/movie/downloaded/?id=' + key
+    url = Get_CP_URL() + '/movie/downloaded/?id=' + key
     Log('Downloaded url: ' + url)
     result = HTTP.Request(url).content
     return MessageContainer("CouchPotato", L('Marked Download Complete'))
@@ -230,7 +230,7 @@ def DownloadComplete(sender, key):
 
 def FailedRetry(sender, key):
     '''Tell CouchPotato to mark the selected movie as a failed download and retry using the same file'''
-    url = CP_URL + '/movie/reAdd/?id=' + key
+    url = Get_CP_URL() + '/movie/reAdd/?id=' + key
     Log('Retry url: ' + url)
     result = HTTP.Request(url).content
     return MessageContainer("CouchPotato", L('Downloaded re-added to queue'))
@@ -239,7 +239,7 @@ def FailedRetry(sender, key):
 
 def FailedFindNew(sender, key):
     '''Tell CouchPotato to mark the selected movie as a failed download and find a different file to retry'''
-    url = CP_URL + '/movie/reAdd/?id=' + key + '&failed=true'
+    url = Get_CP_URL() + '/movie/reAdd/?id=' + key + '&failed=true'
     Log('FindNew url: ' + url)
     result = HTTP.Request(url).content
     return MessageContainer("CouchPotato", L('Movie re-added to "Wanted" list'))
@@ -300,7 +300,7 @@ def AddMovieMenu(sender, id, year, url="", provider=""):
 
 def AddMovie(sender, id, year):
     '''Tell CouchPotato to add the selected movie to the wanted list'''
-    url = CP_URL + '/movie/'
+    url = Get_CP_URL() + '/movie/'
     defaultQuality = HTML.ElementFromURL(url).xpath('//form[@id="addNew"]/div/select/option')[0].get('value')
     post_values = {'quality' : defaultQuality, 'add' : "Add"}
 
@@ -464,7 +464,7 @@ def GetThumb(url):
 def UpdateAvailable():
     '''Check for updates to CouchPotato using the update flag on the webUI'''
     Log('Running function "UpdateAvailable()"')
-    url = CP_URL + '/movie/'
+    url = Get_CP_URL() + '/movie/'
     
     cpPage = HTML.ElementFromURL(url, errors='ignore', cacheTime=0)
     try:
@@ -493,7 +493,7 @@ def UpdateMenu(sender):
 
 def UpdateNow(sender): #Not Implemented
     '''Tell CouchPotato to run the updater'''
-    url = CP_URL  + '/config/update/'
+    url = Get_CP_URL()  + '/config/update/'
     try:
         runUpdate = HTTP.Request(url, errors='ignore').content
     except:
