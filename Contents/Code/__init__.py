@@ -46,27 +46,6 @@ def Start():
 
 ####################################################################################################
 
-def ValidatePrefs():
-    '''restart the plugin after changes to the preferences to make sure that the changes take effect'''
-    Log('restarting plugin')
-    
-    tokens = Core.storage.join_path(Core.storage.data_path, "updates").split("/")
-    dir = "/"
-    for token in tokens:
-      if len(token) < 1: continue
-      if token == "Plug-in Support":
-        break
-      else:
-        dir += token + "/"
-    
-    dir += "Plug-ins/CouchPotato.bundle/Contents"
-    plist = Core.storage.join_path(dir, 'Info.plist')
-    plistData = Core.storage.load(plist)
-    Core.storage.save(plist, plistData)
-    return
-
-####################################################################################################
-
 def MainMenu():
     '''Populate main menu options'''
     dir = MediaContainer(viewGroup="InfoList", title="CouchPotato", cacheTime=0)
@@ -454,7 +433,7 @@ def YtPlayVideo(sender, videoId):
     fmt_list = String.Unquote(fmt_list, usePlus=False)
     fmts = re.findall('([0-9]+)[^,]*', fmt_list)
 
-    index = YT_VIDEO_FORMATS.index( Prefs.Get('ytfmt') )
+    index = YT_VIDEO_FORMATS.index( Prefs['ytfmt'] )
     if YT_FMT[index] in fmts:
         fmt = YT_FMT[index]
     else:
@@ -521,5 +500,10 @@ def UpdateNow(sender): #Not Implemented
         pass
     time.sleep(10)
     return MessageContainer('CouchPotato', L("Update completed."))
+
+################################################################################
+
+def Get_CP_URL():
+  return 'http://'+Prefs['cpIP']+':'+Prefs['cpPort']
 
 ################################################################################
