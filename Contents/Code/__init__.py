@@ -44,6 +44,29 @@ def Start():
     if Prefs['cpUser'] and Prefs['cpPass']:
         HTTP.SetPassword(url=CP_URL, username=Prefs['cpUser'], password=Prefs['cpPass'])
 
+####################################################################################################
+
+def ValidatePrefs():
+    '''restart the plugin after changes to the preferences to make sure that the changes take effect'''
+    Log('restarting plugin')
+    
+    tokens = Core.storage.join_path(Core.storage.data_path, "updates").split("/")
+    dir = "/"
+    for token in tokens:
+      if len(token) < 1: continue
+      if token == "Plug-in Support":
+        break
+      else:
+        dir += token + "/"
+    
+    dir += "Plug-ins/CouchPotato.bundle/Contents"
+    plist = Core.storage.join_path(dir, 'Info.plist')
+    plistData = Core.storage.load(plist)
+    Core.storage.save(plist, plistData)
+    return
+
+####################################################################################################
+
 def MainMenu():
     '''Populate main menu options'''
     dir = MediaContainer(viewGroup="InfoList", title="CouchPotato", cacheTime=0)
@@ -488,6 +511,7 @@ def UpdateMenu(sender):
     return dir
 
 ################################################################################
+
 def UpdateNow(sender): #Not Implemented
     '''Tell CouchPotato to run the updater'''
     url = CP_URL  + '/config/update/'
@@ -497,4 +521,5 @@ def UpdateNow(sender): #Not Implemented
         pass
     time.sleep(10)
     return MessageContainer('CouchPotato', L("Update completed."))
+
 ################################################################################
