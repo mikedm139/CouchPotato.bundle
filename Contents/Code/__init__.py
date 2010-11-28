@@ -55,7 +55,7 @@ def ValidatePrefs():
 
 def MainMenu():
     '''Populate main menu options'''
-    dir = MediaContainer(viewGroup="InfoList", title="CouchPotato", cacheTime=0)
+    dir = MediaContainer(viewGroup="InfoList", title="CouchPotato", noCache=True, cacheTime=0)
 
     dir.Append(Function(DirectoryItem(MoviesMenu,"Movies","Wanted List",
         summary="View and edit your CouchPotato wanted movies list",thumb=R(ICON))))
@@ -505,9 +505,9 @@ def UpdateNow(sender): #Not Implemented
     try:
         runUpdate = HTTP.Request(url, errors='ignore').content
     except:
-        pass
+        return MessageContainer('CouchPotato', L('Update failed'))
     time.sleep(10)
-    return MainMenu()
+    return MessageContainer('CouchPotato', L('Update completed successfully'))
 
 ################################################################################
 
