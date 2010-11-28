@@ -46,6 +46,13 @@ def Start():
 
 ####################################################################################################
 
+def ValidatePrefs():
+    if Prefs['cpUser'] and Prefs['cpPass']:
+        HTTP.SetPassword(url=Get_CP_URL(), username=Prefs['cpUser'], password=Prefs['cpPass'])
+    return
+
+####################################################################################################
+
 def MainMenu():
     '''Populate main menu options'''
     dir = MediaContainer(viewGroup="InfoList", title="CouchPotato", cacheTime=0)
@@ -291,9 +298,10 @@ def SearchResults(sender,query):
 def AddMovieMenu(sender, id, year, url="", provider=""):
     '''Display an action/context menu for the selected movie'''
     dir = MediaContainer()
-    dir.Append(Function(PopupDirectoryItem(AddMovie, title='Add to Wanted list'), id=id, year=year))
+    dir.Append(Function(DirectoryItem(AddMovie, title='Add to Wanted list'), id=id, year=year))
+    dir.Append(Function(DirectoryItem(QualitySelectMenu, title='Select quality to add'), id=id, year=year))
     if url != "":
-        dir.Append(Function(PopupDirectoryItem(TrailerMenu, title='Watch A Trailer'), url=url, provider=provider))
+        dir.Append(Function(DirectoryItem(TrailerMenu, title='Watch A Trailer'), url=url, provider=provider))
     return dir
 
 ################################################################################
@@ -499,7 +507,7 @@ def UpdateNow(sender): #Not Implemented
     except:
         pass
     time.sleep(10)
-    return MessageContainer('CouchPotato', L("Update completed."))
+    return MainMenu()
 
 ################################################################################
 
@@ -507,3 +515,33 @@ def Get_CP_URL():
   return 'http://'+Prefs['cpIP']+':'+Prefs['cpPort']
 
 ################################################################################
+
+def QualitySelectMenu(sender, id, year):
+    '''provide an option to select a quality other than default before adding a movie'''
+    
+    dir = MediaContainer()
+    
+    url = Get_CP_URL() + '/movie/'
+    for quality in HTML.ElementFromURL(url).xpath('//form[@id="addNew"]/div/select/option'):
+        value = quality.get('value')
+        name = quality.text
+        dir.Append(Function(DirectoryItem(AddWithQuality, title=name,
+            subtitle='Add movie with '+name+' quality', thumb=R(ICON)), id=id, year=year,
+            quality=value))
+    
+    return dir
+
+################################################################################
+
+def AddWithQuality(sender, id, year, quality):   
+    '''tell CouchPotato to add the given movie with the given quality (rather than
+        the defaultQuality)'''
+    
+    url = Get_CP_URL() + '/movie/'
+    post_values = {'quality' : quality, 'add' : "Add"}
+
+    # tell CouchPotato to add the given movie
+    moviedAdded = HTTP.Request(url+'imdbAdd/?id='+id+'&year='+year, post_values)
+    
+    return MessageContainer("CouchPotato", L("Added to Wanted list."))
+
