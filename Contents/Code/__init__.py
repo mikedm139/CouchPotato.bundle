@@ -23,11 +23,11 @@ BD_ICON       = 'BD_icon.jpg'
 
 #TRAILER RELATED GLOBAL VARIABLES#
 ##BORROWED FROM AVForums PLUGIN##
-YT_VIDEO_PAGE = 'http://www.youtube.com/watch?v=%s'
+YOUTUBE_VIDEO_PAGE = 'http://www.youtube.com/watch?v=%s'
 YT_GET_VIDEO_URL = 'http://www.youtube.com/get_video?video_id=%s&t=%s&fmt=%d&asv=3'
 
-YT_VIDEO_FORMATS = ['Standard', 'Medium', 'High', '720p', '1080p']
-YT_FMT = [34, 18, 35, 22, 37]
+YOUTUBE_VIDEO_FORMATS = ['Standard', 'Medium', 'High', '720p', '1080p']
+YOUTUBE_FMT = [34, 18, 35, 22, 37]
 
 ####################################################################################################
 
@@ -281,9 +281,12 @@ def SearchResults(sender,query):
                 posterUrl = 'http://hwcdn.themoviedb.org/images/no-poster.jpg'
             link = movie.find('url').text
             #Log(link)
-            trailerText = HTML.ElementFromURL(link).xpath('//p[@class="trailers"]')[0].text
-            if trailerText == "No ":
-                link = ""
+            try:
+                trailerText = HTML.ElementFromURL(link).xpath('//p[@class="trailers"]')[0].text
+                if trailerText == "No ":
+                    link = ""
+            except:
+                link = ''    
         
             if year != None:
                 Log(movieTitle + ' ('+year+') ' + ' found'),
@@ -400,7 +403,9 @@ def ComingToBluray(sender):
 def TrailerMenu(sender, url, provider):
     '''Display a list of WebVideoItem trailers for the selected movie (coming soon menu and *maybe search menu)'''
         
-    dir = MediaContainer(ViewGroup="InfoList", title2="Trailers")
+    cookies = HTTP.GetCookiesForURL('http://www.youtube.com')
+
+    dir = MediaContainer(ViewGroup="InfoList", title2="Trailers", httpCookies=cookies)
        
     if provider == "MovieInsider":
         for trailer in HTML.ElementFromURL(url).xpath('//div[@id="trailer"]/a'):
@@ -411,7 +416,7 @@ def TrailerMenu(sender, url, provider):
             dir.Append(Function(WebVideoItem(YtPlayVideo,
                     title=trailerTitle,
                     thumb=trailerThumb),
-                videoId=trailerID))
+                video_id=trailerID))
     
     elif provider == "TMDB":
         for trailer in HTML.ElementFromURL(url).xpath('//p[@class="trailers"]/a'):
@@ -423,7 +428,7 @@ def TrailerMenu(sender, url, provider):
             dir.Append(Function(WebVideoItem(YtPlayVideo,
                     title=trailerTitle,
                     thumb=Function(GetThumb, url=thumbUrl)),
-                videoId=trailerID))
+                video_id=trailerID))
             
     else: pass
     
@@ -431,31 +436,33 @@ def TrailerMenu(sender, url, provider):
     
 ################################################################################
 
-def YtPlayVideo(sender, videoId):
-    '''A function to play movie trailers hosted on YouTube. Stolen directly from
-        AVForums plugin.'''
-    ytPage = HTTP.Request(YT_VIDEO_PAGE % videoId, cacheTime=1)
+def YtPlayVideo(sender, video_id):
+  yt_page = HTTP.Request(YOUTUBE_VIDEO_PAGE % (video_id), cacheTime=1).content
 
-    t = re.findall('&t=([^&]+)', str(ytPage))[0]
-    fmt_list = re.findall('&fmt_list=([^&]+)', str(ytPage))[0]
-    fmt_list = String.Unquote(fmt_list, usePlus=False)
-    fmts = re.findall('([0-9]+)[^,]*', fmt_list)
+  fmt_url_map = re.findall('"fmt_url_map".+?"([^"]+)', yt_page)[0]
+  fmt_url_map = fmt_url_map.replace('\/', '/').split(',')
 
-    index = YT_VIDEO_FORMATS.index( Prefs['ytfmt'] )
-    if YT_FMT[index] in fmts:
-        fmt = YT_FMT[index]
-    else:
-        for i in reversed( range(0, index+1) ):
-            if str(YT_FMT[i]) in fmts:
-                fmt = YT_FMT[i]
-                break
-            else:
-                fmt = 5
+  fmts = []
+  fmts_info = {}
 
-    url = YT_GET_VIDEO_URL % (videoId, t, fmt)
-    Log('YouTube video URL --> ' + url)
-    
-    return Redirect(url)
+  for f in fmt_url_map:
+    (fmt, url) = f.split('|')
+    fmts.append(fmt)
+    fmts_info[str(fmt)] = url
+
+  index = YOUTUBE_VIDEO_FORMATS.index(Prefs['ytfmt'])
+  if YOUTUBE_FMT[index] in fmts:
+    fmt = YOUTUBE_FMT[index]
+  else:
+    for i in reversed( range(0, index+1) ):
+      if str(YOUTUBE_FMT[i]) in fmts:
+        fmt = YOUTUBE_FMT[i]
+        break
+      else:
+        fmt = 5
+
+  url = fmts_info[str(fmt)]
+  return Redirect(url)
 
 ################################################################################
 
@@ -499,13 +506,13 @@ def UpdateMenu(sender):
 
 ################################################################################
 
-def UpdateNow(sender): #Not Implemented
+def UpdateNow(sender):
     '''Tell CouchPotato to run the updater'''
     url = Get_CP_URL()  + '/config/update/'
     try:
         runUpdate = HTTP.Request(url, errors='ignore').content
     except:
-        return MessageContainer('CouchPotato', L('Update failed'))
+        pass
     time.sleep(10)
     return MessageContainer('CouchPotato', L('Update completed successfully'))
 
