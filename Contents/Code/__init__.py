@@ -1,4 +1,5 @@
 import re
+from base64 import b64encode
 
 ###################################################################################################
 ##
@@ -41,14 +42,24 @@ def Start():
     MediaContainer.title1 = NAME
     DirectoryItem.thumb = R(ICON)
     HTTP.CacheTime=3600
+    #if Prefs['cpUser'] and Prefs['cpPass']:
+    #    HTTP.SetPassword(url=Get_CP_URL(), username=Prefs['cpUser'], password=Prefs['cpPass'])
+
+####################################################################################################
+
+def AuthHeader():
+    header = {}
+
     if Prefs['cpUser'] and Prefs['cpPass']:
-        HTTP.SetPassword(url=Get_CP_URL(), username=Prefs['cpUser'], password=Prefs['cpPass'])
+        header = {'Authorization': 'Basic ' + b64encode(Prefs['cpUser'] + ':' + Prefs['cpPass'])}
+
+    return header
 
 ####################################################################################################
 
 def ValidatePrefs():
-    if Prefs['cpUser'] and Prefs['cpPass']:
-        HTTP.SetPassword(url=Get_CP_URL(), username=Prefs['cpUser'], password=Prefs['cpPass'])
+    #if Prefs['cpUser'] and Prefs['cpPass']:
+    #    HTTP.SetPassword(url=Get_CP_URL(), username=Prefs['cpUser'], password=Prefs['cpPass'])
     return
 
 ####################################################################################################
@@ -95,7 +106,7 @@ def WantedMenu(sender):
     '''Scrape wanted movies from CouchPotato and populate the list with results'''
     url = Get_CP_URL()  + '/movie/'
     dir = MediaContainer(viewGroup="InfoList", title2="Wanted", cacheTime=0)
-    wantedPage = HTML.ElementFromURL(url, errors='ignore')
+    wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader())
     
     for item in wantedPage.xpath('//div[@class="item want"]'):
         # get thumb from tmdb.org
@@ -123,7 +134,7 @@ def WaitingMenu(sender):
         Note: waiting movies differ from wanted movies only by one tag'''
     url = Get_CP_URL() + '/movie/'
     dir = MediaContainer(viewGroup="InfoList", title2="Waiting", cacheTime=0)
-    wantedPage = HTML.ElementFromURL(url, errors='ignore')
+    wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader())
     
     for item in wantedPage.xpath('//div[@class="item waiting"]'):
         #Log('parsing movie item')
@@ -174,7 +185,7 @@ def DownloadedMenu(sender):
     '''Scrape downloaded movies from CouchPotato and populate the list with results'''
     url = Get_CP_URL() + '/movie/'
     dir = MediaContainer(viewGroup="InfoList", title2="Downloaded", cacheTime=0)
-    wantedPage = HTML.ElementFromURL(url, errors='ignore')
+    wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader())
     thumb = R(DL_ICON)
     summary = 'This movie should now be available in your Plex library.'
     
@@ -212,7 +223,7 @@ def ForceRefresh(sender, key):
     '''Force CouchPotato to refresh info and search for the selected movie'''
     url = Get_CP_URL() + '/cron/forceSingle/?id=' + key
     Log('Forcecheck url: ' + url)
-    result = HTTP.Request(url).content
+    result = HTTP.Request(url, headers=AuthHeader()).content
     return MessageContainer("CouchPotato", L('Forcing refresh/search'))
 
 ################################################################################
@@ -221,7 +232,7 @@ def RemoveMovie(sender, key):
     '''Tell CouchPotato to remove the selected movie from the wanted list'''
     url = Get_CP_URL() + '/movie/delete/?id=' + key
     Log('DeleteMovie url: ' + url)
-    result = HTTP.Request(url).content
+    result = HTTP.Request(url, headers=AuthHeader()).content
     return MessageContainer("CouchPotato", L('Deleting from wanted list'))
 
 ################################################################################
@@ -230,7 +241,7 @@ def DownloadComplete(sender, key):
     '''Tell CouchPotato to mark the selected movie as a completed download'''
     url = Get_CP_URL() + '/movie/downloaded/?id=' + key
     Log('Downloaded url: ' + url)
-    result = HTTP.Request(url).content
+    result = HTTP.Request(url, headers=AuthHeader()).content
     return MessageContainer("CouchPotato", L('Marked Download Complete'))
 
 ################################################################################
@@ -239,7 +250,7 @@ def FailedRetry(sender, key):
     '''Tell CouchPotato to mark the selected movie as a failed download and retry using the same file'''
     url = Get_CP_URL() + '/movie/reAdd/?id=' + key
     Log('Retry url: ' + url)
-    result = HTTP.Request(url).content
+    result = HTTP.Request(url, headers=AuthHeader()).content
     return MessageContainer("CouchPotato", L('Downloaded re-added to queue'))
 
 ################################################################################
@@ -248,7 +259,7 @@ def FailedFindNew(sender, key):
     '''Tell CouchPotato to mark the selected movie as a failed download and find a different file to retry'''
     url = Get_CP_URL() + '/movie/reAdd/?id=' + key + '&failed=true'
     Log('FindNew url: ' + url)
-    result = HTTP.Request(url).content
+    result = HTTP.Request(url, headers=AuthHeader()).content
     return MessageContainer("CouchPotato", L('Movie re-added to "Wanted" list'))
 
 ################################################################################
@@ -312,11 +323,11 @@ def AddMovieMenu(sender, id, year, url="", provider=""):
 def AddMovie(sender, id, year):
     '''Tell CouchPotato to add the selected movie to the wanted list'''
     url = Get_CP_URL() + '/movie/'
-    defaultQuality = HTML.ElementFromURL(url).xpath('//form[@id="addNew"]/div/select/option')[0].get('value')
+    defaultQuality = HTML.ElementFromURL(url, headers=AuthHeader()).xpath('//form[@id="addNew"]/div/select/option')[0].get('value')
     post_values = {'quality' : defaultQuality, 'add' : "Add"}
 
     # tell CouchPotato to add the given movie
-    moviedAdded = HTTP.Request(url+'imdbAdd/?id='+id+'&year='+year, post_values)
+    moviedAdded = HTTP.Request(url+'imdbAdd/?id='+id+'&year='+year, post_values, headers=AuthHeader())
     
     return MessageContainer("CouchPotato", L("Added to Wanted list."))
 
@@ -481,7 +492,7 @@ def UpdateAvailable():
     Log('Running function "UpdateAvailable()"')
     url = Get_CP_URL() + '/movie/'
     
-    cpPage = HTML.ElementFromURL(url, errors='ignore', cacheTime=0)
+    cpPage = HTML.ElementFromURL(url, errors='ignore', cacheTime=0, headers=AuthHeader())
     try:
         Log(cpPage.xpath('//span[@class="updateAvailable git"]')[0].text)
         if cpPage.xpath('//span[@class="updateAvailable git"]')[0].text == 'Update available: ':
@@ -510,7 +521,7 @@ def UpdateNow(sender):
     '''Tell CouchPotato to run the updater'''
     url = Get_CP_URL()  + '/config/update/'
     try:
-        runUpdate = HTTP.Request(url, errors='ignore').content
+        runUpdate = HTTP.Request(url, errors='ignore', headers=AuthHeader()).content
     except:
         pass
     time.sleep(10)
@@ -529,7 +540,7 @@ def QualitySelectMenu(sender, id, year):
     dir = MediaContainer()
     
     url = Get_CP_URL() + '/movie/'
-    for quality in HTML.ElementFromURL(url).xpath('//form[@id="addNew"]/div/select/option'):
+    for quality in HTML.ElementFromURL(url, headers=AuthHeader()).xpath('//form[@id="addNew"]/div/select/option'):
         value = quality.get('value')
         name = quality.text
         dir.Append(Function(DirectoryItem(AddWithQuality, title=name,
@@ -548,7 +559,7 @@ def AddWithQuality(sender, id, year, quality):
     post_values = {'quality' : quality, 'add' : "Add"}
 
     # tell CouchPotato to add the given movie
-    moviedAdded = HTTP.Request(url+'imdbAdd/?id='+id+'&year='+year, post_values)
+    moviedAdded = HTTP.Request(url+'imdbAdd/?id='+id+'&year='+year, post_values, headers=AuthHeader())
     
     return MessageContainer("CouchPotato", L("Added to Wanted list."))
 
