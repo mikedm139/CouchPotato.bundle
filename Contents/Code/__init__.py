@@ -42,6 +42,7 @@ def Start():
     MediaContainer.title1 = NAME
     DirectoryItem.thumb = R(ICON)
     HTTP.CacheTime=3600
+
     #if Prefs['cpUser'] and Prefs['cpPass']:
     #    HTTP.SetPassword(url=Get_CP_URL(), username=Prefs['cpUser'], password=Prefs['cpPass'])
 
@@ -357,7 +358,10 @@ def ComingToTheatres(sender):
         movieInfoPage = HTML.ElementFromURL(link, errors='ignore')
         movieReleaseDate = movieInfoPage.xpath('//table[@id="profileData"]/tr/td/a')[0].text
         movieYear = movieInfoPage.xpath('//table[@id="profileData"]/tr/td/a')[1].text
-        movieOverview = movieInfoPage.xpath('//div[@id="synopsis"]/span')[0].text
+        try:
+            movieOverview = movieInfoPage.xpath('//div[@id="synopsis"]/span')[0].text
+        except:
+            movieOverview = ''
         imdbLink = movieInfoPage.xpath('//div[@id="relatedLinks"]/ul/li/a')[0].get('href')
         imdbID = str(imdbLink)[26:-1]
         #Log('imdbID: ' + imdbID)
