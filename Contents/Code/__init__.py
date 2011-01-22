@@ -310,13 +310,17 @@ def SearchResults(sender,query):
     
 ################################################################################
 
-def AddMovieMenu(sender, id, year, url="", provider=""):
+def AddMovieMenu(sender, id, year, url="", youtubeID=None, provider=""):
     '''Display an action/context menu for the selected movie'''
     dir = MediaContainer()
     dir.Append(Function(DirectoryItem(AddMovie, title='Add to Wanted list'), id=id, year=year))
     dir.Append(Function(DirectoryItem(QualitySelectMenu, title='Select quality to add'), id=id, year=year))
     if url != "":
         dir.Append(Function(DirectoryItem(TrailerMenu, title='Watch A Trailer'), url=url, provider=provider))
+    elif youtubeID:
+        dir.Append(Function(DirectoryItem(TrailerMenu, title='Watch A Trailer'), youtubeID=youtubeID, provider=provider))
+    else:
+        pass
     return dir
 
 ################################################################################
@@ -338,6 +342,7 @@ def ComingSoonMenu(sender):
     dir = MediaContainer(title2="Coming Soon")
     dir.Append(Function(DirectoryItem(ComingToTheatres, title="Coming to Theatres", thumb=R(THEATRE_ICON))))
     dir.Append(Function(DirectoryItem(ComingToBluray, title="Coming to Bluray", thumb=R(BD_ICON))))
+    dir.Append(Function(DirectoryItem(NewReleases,"New on DVD/BluRay", thumb=R(ICON))))
     
     return dir
 
@@ -373,6 +378,7 @@ def ComingToTheatres(sender):
             id=imdbID, year=movieYear, url=link, provider="MovieInsider"))
         
     return dir
+
 ################################################################################
 
 def ComingToBluray(sender):
@@ -415,7 +421,47 @@ def ComingToBluray(sender):
 
 ################################################################################
 
-def TrailerMenu(sender, url, provider):
+def NewReleases(sender):
+    '''Scrape PopularNewReleases.com for recent BluRay releases'''
+    url = 'http://popularnewreleases.com/index.php?sort=release-date'
+    dir = MediaContainer(viewGroup="InfoList", title2="New Releases", cacheTime=0)
+    newReleasePage = HTML.ElementFromURL(url, errors='ignore')
+    
+    for movie in newReleasePage.xpath('//table[@class="movie"]'):
+        movieTitle = movie.xpath('.//h1[@class="title"]/a')[0].text
+        Log('Found - New Release: '+movieTitle)
+        try: posterUrl = movie.xpath('.//img[@class="movieart"]')[0].get('src')
+        except: posterUrl = 'http://hwcdn.themoviedb.org/images/no-poster.jpg'
+        try:
+            youtubetrailer=movie.xpath('.//a[@class="trailer-link internal-action-link"]')[0].get('youtubeid')
+        except:
+            youtubetrailer=None
+        Log('YouTubeID: '+str(youtubetrailer))
+        try:
+            BDReleaseDate = movie.xpath('.//td[@class="on-video"]')[0].text
+        except:
+            BDReleaseDate = ""    
+        movieYear = movie.xpath('.//span[@class="theatrical-release-year"]')[0].text.split('(')[1].split(')')[0]
+        Log('Release year: '+movieYear)
+        try:
+            movieOverview = movie.xpath('.//p[@class="synopsis"]')[0].text
+        except:
+            movieOverview = ""
+        imdbID = movie.xpath('.//a[@class="external-action-link"]')[0].get('href').split('title/tt')[1]
+            
+        Log('imdbID: ' + imdbID)
+        dir.Append(Function(PopupDirectoryItem(AddMovieMenu,
+                title=(movieTitle+' ('+movieYear+')'),
+                subtitle=('Release: '+BDReleaseDate),
+                summary = movieOverview,
+                thumb = Function(GetThumb, url=posterUrl)),
+            id=imdbID, year=movieYear, youtubeID=youtubetrailer, provider="MovieInsider"))
+        
+    return dir
+
+################################################################################
+
+def TrailerMenu(sender, url="", youtubeID=None, provider=""):
     '''Display a list of WebVideoItem trailers for the selected movie (coming soon menu and *maybe search menu)'''
         
     cookies = HTTP.GetCookiesForURL('http://www.youtube.com')
@@ -427,7 +473,7 @@ def TrailerMenu(sender, url, provider):
             trailerID = str(trailer.xpath('div')[0].get('style'))[44:-14]
             trailerThumb = str(trailer.xpath('div')[0].get('style'))[21:-2]
             trailerTitle = trailer.xpath('div/p/ins[@class="icon play"]/parent::p/text()')[0]
-            Log(trailerTitle)
+            #Log(trailerTitle)
             dir.Append(Function(WebVideoItem(YtPlayVideo,
                     title=trailerTitle,
                     thumb=trailerThumb),
@@ -436,15 +482,20 @@ def TrailerMenu(sender, url, provider):
     elif provider == "TMDB":
         for trailer in HTML.ElementFromURL(url).xpath('//p[@class="trailers"]/a'):
             trailerID = str(trailer.get('href'))[31:-5]
-            Log('TrailerID: '+trailerID)
+            #Log('TrailerID: '+trailerID)
             thumbUrl = 'http://i2.ytimg.com/vi/'+trailerID+'/default.jpg'
             trailerTitle = trailer.text
-            Log(trailerTitle)
+            #Log(trailerTitle)
             dir.Append(Function(WebVideoItem(YtPlayVideo,
                     title=trailerTitle,
                     thumb=Function(GetThumb, url=thumbUrl)),
                 video_id=trailerID))
             
+    elif provider == "PopularNewReleases":
+        thumbUrl = 'http://i2.ytimg.com/vi/%s/default.jpg' % youtubeID
+        dir.Append(Function(WebVideoItem(YtPlayVideo, title='Trailer',
+            thumb=Function(GetThumb, url=thumbUrl)), video_id=youtubeID))
+
     else: pass
     
     return dir
@@ -499,7 +550,7 @@ def UpdateAvailable():
     cpPage = HTML.ElementFromURL(url, errors='ignore', cacheTime=0, headers=AuthHeader())
     try:
         Log(cpPage.xpath('//span[@class="updateAvailable git"]')[0].text)
-        if cpPage.xpath('//span[@class="updateAvailable git"]')[0].text == 'Update available: ':
+        if cpPage.xpath('//span[@class="updateAvailable git"]')[0].text == 'Update (':
             cpUpdate = True
         else:
             cpUpdate = False
