@@ -1,4 +1,4 @@
-import re
+import re, os
 from base64 import b64encode
 
 ###################################################################################################
@@ -20,7 +20,6 @@ DL_ICON       = 'Plex_256x256.png'
 MOVIE_ICON    = 'movie-reel.jpg'
 THEATRE_ICON  = 'popcorn.jpg'
 BD_ICON       = 'BD_icon.jpg'
-#CP_URL        = 'http://'+Prefs['cpIP']+':'+Prefs['cpPort']
 
 #TRAILER RELATED GLOBAL VARIABLES#
 ##BORROWED FROM AVForums PLUGIN##
@@ -34,7 +33,13 @@ YOUTUBE_FMT = [34, 18, 35, 22, 37]
 
 def Start():
     '''Setup plugin for use'''
-    Plugin.AddPrefixHandler(VIDEO_PREFIX, MainMenu, L('CouchPotato'), ICON, ART)
+    #Plugin.AddPrefixHandler(VIDEO_PREFIX, MainMenu, L('CouchPotato'), ICON, ART)
+    
+    if Dict['MovieSectionID'] == None:
+        Plugin.AddPrefixHandler(VIDEO_PREFIX, GetMovieSectionID, NAME, ICON, ART)
+    else:
+        Plugin.AddPrefixHandler(VIDEO_PREFIX, MainMenu, NAME, ICON, ART)
+    
     Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
     Plugin.AddViewGroup("List", viewMode="List", mediaType="items")
 
@@ -77,6 +82,9 @@ def MainMenu():
         summary="Find movies to add to your wanted list",thumb=R(SEARCH_ICON))))
     dir.Append(PrefsItem(title="Preferences",subtitle="CouchPotato plugin preferences",
         summary="Set prefs to allow plugin to connect to CouchPotato app",thumb=R(PREFS_ICON)))
+    if Prefs['allowDEL']:
+        dir.Append(Function(DirectoryItem(RecentlyViewedMenu, L('Delete recently viewed'),
+            L('Select movies from the recently viewed list to remove from the library'), thumb=R(ICON))))
     if UpdateAvailable():
         Log('Update available')
         dir.Append(Function(PopupDirectoryItem(UpdateMenu, title='CouchPotato update available',
@@ -367,8 +375,11 @@ def ComingToTheatres(sender):
             movieOverview = movieInfoPage.xpath('//div[@id="synopsis"]/span')[0].text
         except:
             movieOverview = ''
-        imdbLink = movieInfoPage.xpath('//div[@id="relatedLinks"]/ul/li/a')[0].get('href')
-        imdbID = str(imdbLink)[26:-1]
+        try:
+            imdbLink = movieInfoPage.xpath('//div[@id="relatedLinks"]/ul/li/a')[0].get('href')
+            imdbID = str(imdbLink)[26:-1]
+        except:
+            continue
         #Log('imdbID: ' + imdbID)
         dir.Append(Function(PopupDirectoryItem(AddMovieMenu,
                 title=(movieName+' ('+movieYear+')'),
@@ -407,8 +418,11 @@ def ComingToBluray(sender):
             movieOverview = movieInfoPage.xpath('//div[@id="synopsis"]/span')[0].text
         except:
             movieOverview = ""
-        imdbLink = movieInfoPage.xpath('//div[@id="relatedLinks"]/ul/li/a')[0].get('href')
-        imdbID = str(imdbLink)[26:-1]
+        try:
+            imdbLink = movieInfoPage.xpath('//div[@id="relatedLinks"]/ul/li/a')[0].get('href')
+            imdbID = str(imdbLink)[26:-1]
+        except:
+            continue
         #Log('imdbID: ' + imdbID)
         dir.Append(Function(PopupDirectoryItem(AddMovieMenu,
                 title=(movieName+' ('+movieYear+')'),
@@ -617,4 +631,98 @@ def AddWithQuality(sender, id, year, quality):
     moviedAdded = HTTP.Request(url+'imdbAdd/?id='+id+'&year='+year, post_values, headers=AuthHeader())
     
     return MessageContainer("CouchPotato", L("Added to Wanted list."))
+    
+####################################################################################################
+
+def GetMovieSectionID():
+    '''Determine what section(s) are Movies in Plex library'''
+    
+    dir = MediaContainer(title2='Choose Movie section', noCache=True)
+    library = HTML.ElementFromURL(Get_PMS_URL()+'/library/sections', cacheTime=0)
+    movieSections = []
+    for section in library.xpath('//directory'):
+        if section.get('type') == 'movie':
+            movieSections.append({'title':section.get('title'), 'key':section.get('key')})
+    
+    if len(movieSections) > 1:
+        Log('There are %d sections which contain "movies"' % len(movieSections))
+        for section in movieSections:
+            dir.Append(Function(DirectoryItem(ForceMovieSection, title=section['title']), sectionID=section['key']))
+        return dir
+    elif len(movieSections) == 1:
+        Log('There is 1 section which contains movies.')
+        Dict['MovieSectionID'] = movieSections[0]['key']
+        Log('Movie sectionID saved.')
+        return MainMenu()
+    else:
+        return MessageContainer(NAME, L('Could not identify a section of Movies.'))
+
+    return MainMenu()
+    
+####################################################################################################
+
+def ForceMovieSection(sender, sectionID):
+    Log('Section #%s chosen' % sectionID)
+    Dict['MovieSectionID'] = sectionID
+    Log('Movie sectionID saved.')
+    return MainMenu()
+
+####################################################################################################
+
+def Get_PMS_URL():
+    return 'http://'+Prefs['pmsIP']+':32400'
+    
+####################################################################################################
+
+def RecentlyViewedMenu(sender):
+    '''retrieve list of recently viewed movies and allow option to delete the files (on an individual basis)'''
+    dir = MediaContainer(viewGroup='InfoList', title2='Delete', noCache=True)
+    
+    recentlyViewedUrl = Get_PMS_URL() + '/library/sections/' + Dict['MovieSectionID'] + '/recentlyViewed'
+    recentlyViewed = XML.ElementFromURL(recentlyViewedUrl, cacheTime=0)
+    
+    archive = True
+    
+    for movie in recentlyViewed.xpath('//Video'):
+        movieName = movie.get('title')
+        #Log(str(movieName))
+        summary = movie.get('summary')
+        #Log(str(summary))
+        movieYear = movie.get('year')
+        #Log(str(movieYear))
+        file = movie.xpath('.//Part')[0].get('file')
+        #Log(str(file))
+        thumbUrl = movie.get('thumb')
+        dir.Append(Function(PopupDirectoryItem(ConfirmDelete, title=movieName +' (%s)' % movieYear,
+                subtitle=file, summary = summary,thumb=Function(GetThumbFromPMS, link=thumbUrl)), file=file))
+    
+    return dir
+
+####################################################################################################
+
+def GetThumbFromPMS(link):
+    try:
+        data = HTTP.Request(Get_PMS_URL() + link, cacheTime=CACHE_1MONTH).content
+        return DataObject(data, 'image/jpeg')
+    except:
+        return Redirect(R(ICON))
+
+####################################################################################################
+
+def ConfirmDelete(sender, file):
+
+    dir = MediaContainer()
+    dir.Append(Function(DirectoryItem(DeleteFile, title='Delete this movie?'), file=file))
+    return dir
+
+####################################################################################################
+
+def DeleteFile(sender, file):
+    
+    ### delete the given episode ###
+    os.remove(file)
+    
+    return MessageContainer(NAME, L('Episode deleted from system.'+
+        ' Changes will be reflected after the next Library Update.'))
+
 

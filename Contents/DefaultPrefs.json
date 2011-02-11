@@ -35,5 +35,19 @@
                 "label":        "Max. quality of YouTube Trailer videos (if available)",
                 "values":       ["Standard", "Medium", "High", "720p", "1080p"],
                 "default":      "1080p"
+        },
+        
+        {
+                "id":           "allowDEL",
+                "type":         "bool",
+                "label":        "Allow delete?",
+                "default":      "False"
+        },
+        
+        {
+                "id":           "pmsIP",
+                "type":         "text",
+                "label":        "PMS IP",
+                "default":      "localhost"
         }
 ]
