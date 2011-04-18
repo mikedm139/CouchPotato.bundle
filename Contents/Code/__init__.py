@@ -114,8 +114,8 @@ def MoviesMenu(sender):
 def WantedMenu(sender):
     '''Scrape wanted movies from CouchPotato and populate the list with results'''
     url = Get_CP_URL()  + '/movie/'
-    dir = MediaContainer(viewGroup="InfoList", title2="Wanted", cacheTime=0)
-    wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader())
+    dir = MediaContainer(viewGroup="InfoList", title2="Wanted", noCache=True)
+    wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader(), cacheTime=0)
     
     for item in wantedPage.xpath('//div[@class="item want"]'):
         # get thumb from tmdb.org
@@ -142,8 +142,8 @@ def WaitingMenu(sender):
     '''Scrape waiting movies from CouchPotato and populate the list with results.
         Note: waiting movies differ from wanted movies only by one tag'''
     url = Get_CP_URL() + '/movie/'
-    dir = MediaContainer(viewGroup="InfoList", title2="Waiting", cacheTime=0)
-    wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader())
+    dir = MediaContainer(viewGroup="InfoList", title2="Waiting", noCache=True)
+    wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader(), cacheTime=0)
     
     for item in wantedPage.xpath('//div[@class="item waiting"]'):
         #Log('parsing movie item')
@@ -175,8 +175,8 @@ def WaitingMenu(sender):
 def SnatchedMenu(sender):
     '''Scrape snatched movies from CouchPotato and populate the list with results'''
     url = Get_CP_URL() + '/movie/'
-    dir = MediaContainer(viewGroup="InfoList", title2="Snatched", cacheTime=0)
-    wantedPage = HTML.ElementFromURL(url, errors='ignore')
+    dir = MediaContainer(viewGroup="InfoList", title2="Snatched", noCache=True)
+    wantedPage = HTML.ElementFromURL(url, errors='ignore', cacheTime=0)
     thumb = R(SNATCHED_ICON)
     summary = 'This movie should now appear in your downloads queue.'
     
@@ -193,8 +193,8 @@ def SnatchedMenu(sender):
 def DownloadedMenu(sender):
     '''Scrape downloaded movies from CouchPotato and populate the list with results'''
     url = Get_CP_URL() + '/movie/'
-    dir = MediaContainer(viewGroup="InfoList", title2="Downloaded", cacheTime=0)
-    wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader())
+    dir = MediaContainer(viewGroup="InfoList", title2="Downloaded", noCache=True)
+    wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader(), cacheTime=0)
     thumb = R(DL_ICON)
     summary = 'This movie should now be available in your Plex library.'
     
@@ -275,7 +275,7 @@ def FailedFindNew(sender, key):
 
 def SearchResults(sender,query):
     '''Search themoviedb.org for movies using user input, and populate a list with the results'''
-    dir = MediaContainer(title2="Search Results")
+    dir = MediaContainer(title2="Search Results", viewGroup="InfoList")
     Log('Search term(s): ' + query)
     
     resultList = XML.ElementFromURL(
@@ -359,7 +359,7 @@ def ComingSoonMenu(sender):
 def ComingToTheatres(sender):
     '''Scrape themovieinsider.com for coming soon movies and populate a list'''
     url = 'http://www.themovieinsider.com/movies/coming-soon/'
-    dir = MediaContainer(viewGroup="InfoList", title2="Coming Soon", cacheTime=0)
+    dir = MediaContainer(viewGroup="InfoList", title2="Coming Soon", noCache=True)
     comingSoonPage = HTML.ElementFromURL(url, errors='ignore')
     
     for comingMovie in comingSoonPage.xpath('//h3'):
@@ -395,7 +395,7 @@ def ComingToTheatres(sender):
 def ComingToBluray(sender):
     '''Scrape themovieinsider.com for coming soon movies and populate a list'''
     url = 'http://www.themovieinsider.com/blu-rays/coming-soon/'
-    dir = MediaContainer(viewGroup="InfoList", title2="Coming Soon", cacheTime=0)
+    dir = MediaContainer(viewGroup="InfoList", title2="Coming Soon", noCache=True)
     comingSoonPage = HTML.ElementFromURL(url, errors='ignore')
     
     for comingMovie in comingSoonPage.xpath('//h3'):
@@ -438,7 +438,7 @@ def ComingToBluray(sender):
 def NewReleases(sender):
     '''Scrape PopularNewReleases.com for recent BluRay releases'''
     url = 'http://popularnewreleases.com/index.php?sort=release-date'
-    dir = MediaContainer(viewGroup="InfoList", title2="New Releases", cacheTime=0)
+    dir = MediaContainer(viewGroup="InfoList", title2="New Releases", noCache=True)
     newReleasePage = HTML.ElementFromURL(url, errors='ignore')
     
     for movie in newReleasePage.xpath('//table[@class="movie"]'):
@@ -480,7 +480,7 @@ def TrailerMenu(sender, url="", youtubeID=None, provider=""):
         
     cookies = HTTP.GetCookiesForURL('http://www.youtube.com')
 
-    dir = MediaContainer(ViewGroup="InfoList", title2="Trailers", httpCookies=cookies)
+    dir = MediaContainer(ViewGroup="InfoList", title2="Trailers", httpCookies=cookies, noCache=True)
        
     if provider == "MovieInsider":
         for trailer in HTML.ElementFromURL(url).xpath('//div[@id="trailer"]/a'):
