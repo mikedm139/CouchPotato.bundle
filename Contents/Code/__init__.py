@@ -7,7 +7,7 @@ from base64 import b64encode
 ##  
 ###################################################################################################
 
-VIDEO_PREFIX = "/video/couchpotato"
+APPLICATIONS_PREFIX = "/applications/couchpotato"
 
 NAME = L('CouchPotato')
 
@@ -33,12 +33,12 @@ YOUTUBE_FMT = [34, 18, 35, 22, 37]
 
 def Start():
     '''Setup plugin for use'''
-    #Plugin.AddPrefixHandler(VIDEO_PREFIX, MainMenu, L('CouchPotato'), ICON, ART)
+    #Plugin.AddPrefixHandler(APPLICATIONS_PREFIX, MainMenu, L('CouchPotato'), ICON, ART)
     
     if Dict['MovieSectionID'] == None:
-        Plugin.AddPrefixHandler(VIDEO_PREFIX, GetMovieSectionID, NAME, ICON, ART)
+        Plugin.AddPrefixHandler(APPLICATIONS_PREFIX, GetMovieSectionID, NAME, ICON, ART)
     else:
-        Plugin.AddPrefixHandler(VIDEO_PREFIX, MainMenu, NAME, ICON, ART)
+        Plugin.AddPrefixHandler(APPLICATIONS_PREFIX, MainMenu, NAME, ICON, ART)
     
     Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
     Plugin.AddViewGroup("List", viewMode="List", mediaType="items")
