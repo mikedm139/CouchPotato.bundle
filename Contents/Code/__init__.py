@@ -561,7 +561,11 @@ def UpdateAvailable():
     Log('Running function "UpdateAvailable()"')
     url = Get_CP_URL() + '/movie/'
     
-    cpPage = HTML.ElementFromURL(url, errors='ignore', cacheTime=0, headers=AuthHeader())
+    try:
+        cpPage = HTML.ElementFromURL(url, errors='ignore', cacheTime=0, headers=AuthHeader())
+    except:
+        Log('Unable to access CouchPotato webserver. Please check plugin preferences.')
+        return False
     try:
         Log(cpPage.xpath('//span[@class="updateAvailable git"]')[0].text)
         if cpPage.xpath('//span[@class="updateAvailable git"]')[0].text == 'Update (':
