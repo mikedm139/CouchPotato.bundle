@@ -323,12 +323,12 @@ def AddMovieMenu(sender, id, year, url="", youtubeID=None, provider=""):
     dir = MediaContainer()
     dir.Append(Function(DirectoryItem(AddMovie, title='Add to Wanted list'), id=id, year=year))
     dir.Append(Function(DirectoryItem(QualitySelectMenu, title='Select quality to add'), id=id, year=year))
-    if url != "":
-        dir.Append(Function(DirectoryItem(TrailerMenu, title='Watch A Trailer'), url=url, provider=provider))
-    elif youtubeID:
-        dir.Append(Function(DirectoryItem(TrailerMenu, title='Watch A Trailer'), youtubeID=youtubeID, provider=provider))
-    else:
-        pass
+    #if url != "":
+    #    dir.Append(Function(DirectoryItem(TrailerMenu, title='Watch A Trailer'), url=url, provider=provider))
+    #elif youtubeID:
+    #    dir.Append(Function(DirectoryItem(TrailerMenu, title='Watch A Trailer'), youtubeID=youtubeID, provider=provider))
+    #else:
+    #    pass
     return dir
 
 ################################################################################
@@ -365,11 +365,7 @@ def ComingToTheatres(sender):
     for comingMovie in comingSoonPage.xpath('//h3'):
         link = comingMovie.xpath('./a')[0].get('href')
         movieName = comingMovie.xpath('./a')[0].text
-        #Log('Found - Coming Soon: '+movieName+' : '+ link)
-        #try: posterUrl = HTML.ElementFromURL(link,errors='ignore').xpath('//img[@id="poster"]')[0].get('src')
-        #except: posterUrl = 'http://hwcdn.themoviedb.org/images/no-poster.jpg'
         movieInfoPage = HTML.ElementFromURL(link, errors='ignore')
-        #movieReleaseDate = movieInfoPage.xpath('//table[@id="profileData"]/tr/td/a')[0].text
         try:
             movieTagLine = movieInfoPage.xpath('//p[@id="tagline"]')[0].text
             Log(movieTagLine)
@@ -388,7 +384,6 @@ def ComingToTheatres(sender):
             Log(imdbID)
         except:
             continue
-        #Log('imdbID: ' + imdbID)
         dir.Append(Function(PopupDirectoryItem(AddMovieMenu,
                 title=(movieName+' ('+movieYear+')'),
                 subtitle=movieTagLine,
@@ -409,7 +404,6 @@ def ComingToBluray(sender):
     for comingMovie in comingSoonPage.xpath('//h3'):
         link = comingMovie.xpath('./a')[0].get('href')
         movieName = comingMovie.xpath('./a')[0].text
-        #Log('Found - Coming Soon: '+movieName+' : '+ link)
         movieInfoPage = HTML.ElementFromURL(link,errors='ignore')
         try:
             movieTagLine = movieInfoPage.xpath('//p[@id="tagline"]')[0].text
@@ -426,7 +420,6 @@ def ComingToBluray(sender):
             imdbID = str(imdbLink)[26:-1]
         except:
             continue
-        #Log('imdbID: ' + imdbID)
         dir.Append(Function(PopupDirectoryItem(AddMovieMenu,
                 title=(movieName+' ('+movieYear+')'),
                 subtitle=movieTagLine,
