@@ -82,9 +82,6 @@ def MainMenu():
         summary="Find movies to add to your wanted list",thumb=R(SEARCH_ICON))))
     dir.Append(PrefsItem(title="Preferences",subtitle="CouchPotato plugin preferences",
         summary="Set prefs to allow plugin to connect to CouchPotato app",thumb=R(PREFS_ICON)))
-    if Prefs['allowDEL']:
-        dir.Append(Function(DirectoryItem(RecentlyViewedMenu, L('Delete recently viewed'),
-            L('Select movies from the recently viewed list to remove from the library'), thumb=R(ICON))))
     if UpdateAvailable():
         Log('Update available')
         dir.Append(Function(PopupDirectoryItem(UpdateMenu, title='CouchPotato update available',
@@ -678,56 +675,3 @@ def Get_PMS_URL():
     return 'http://'+Prefs['pmsIP']+':32400'
     
 ####################################################################################################
-
-def RecentlyViewedMenu(sender):
-    '''retrieve list of recently viewed movies and allow option to delete the files (on an individual basis)'''
-    dir = MediaContainer(viewGroup='InfoList', title2='Delete', noCache=True)
-    
-    recentlyViewedUrl = Get_PMS_URL() + '/library/sections/' + Dict['MovieSectionID'] + '/recentlyViewed'
-    recentlyViewed = XML.ElementFromURL(recentlyViewedUrl, cacheTime=0)
-    
-    archive = True
-    
-    for movie in recentlyViewed.xpath('//Video'):
-        movieName = movie.get('title')
-        #Log(str(movieName))
-        summary = movie.get('summary')
-        #Log(str(summary))
-        movieYear = movie.get('year')
-        #Log(str(movieYear))
-        file = movie.xpath('.//Part')[0].get('file')
-        #Log(str(file))
-        thumbUrl = movie.get('thumb')
-        dir.Append(Function(PopupDirectoryItem(ConfirmDelete, title=movieName +' (%s)' % movieYear,
-                subtitle=file, summary = summary,thumb=Function(GetThumbFromPMS, link=thumbUrl)), file=file))
-    
-    return dir
-
-####################################################################################################
-
-def GetThumbFromPMS(link):
-    try:
-        data = HTTP.Request(Get_PMS_URL() + link, cacheTime=CACHE_1MONTH).content
-        return DataObject(data, 'image/jpeg')
-    except:
-        return Redirect(R(ICON))
-
-####################################################################################################
-
-def ConfirmDelete(sender, file):
-
-    dir = MediaContainer()
-    dir.Append(Function(DirectoryItem(DeleteFile, title='Delete this movie?'), file=file))
-    return dir
-
-####################################################################################################
-
-def DeleteFile(sender, file):
-    
-    ### delete the given episode ###
-    os.remove(file)
-    
-    return MessageContainer(NAME, L('Episode deleted from system.'+
-        ' Changes will be reflected after the next Library Update.'))
-
-

@@ -38,13 +38,6 @@
         },
         
         {
-                "id":           "allowDEL",
-                "type":         "bool",
-                "label":        "Allow delete?",
-                "default":      "False"
-        },
-        
-        {
                 "id":           "pmsIP",
                 "type":         "text",
                 "label":        "PMS IP",
