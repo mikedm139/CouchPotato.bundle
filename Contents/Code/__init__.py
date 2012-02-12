@@ -200,12 +200,12 @@ def ForceRefresh(dataID):
 
 ################################################################################
 
-def RemoveMovie(sender, dataID):
+def RemoveMovie(dataID):
     '''Tell CouchPotato to remove the selected movie from the wanted list'''
     url = Get_CP_URL() + '/movie/delete/?id=' + dataID
-    Log('DeleteMovie url: ' + url)
+    #Log('DeleteMovie url: ' + url)
     result = HTTP.Request(url, headers=AuthHeader()).content
-    return MessageContainer("CouchPotato", L('Deleting from wanted list'))
+    return ObjectContainer(header="CouchPotato", meddage=L('Deleting from wanted list'), no_history=True)
 
 ################################################################################
 
