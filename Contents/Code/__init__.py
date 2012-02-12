@@ -172,12 +172,12 @@ def DownloadedMenu():
   
 ################################################################################
 
-def WantedList(sender, dataID):
+def WantedList(dataID):
     '''Display an action-context menu for the selected movie'''
-    dir = MediaContainer(title2="Wanted Movies")
-    dir.Append(Function(DirectoryItem(ForceRefresh, title='Refresh'), dataID=dataID))
-    dir.Append(Function(DirectoryItem(RemoveMovie, title='Delete'), dataID=dataID))
-    return dir
+    oc = ObjectContainer(title2="Wanted Movies")
+    oc.add(DirectoryObject(key=Callback(ForceRefresh, dataID=dataID), title='Refresh'))
+    oc.add(DirectoryObject(key=Callback(RemoveMovie, dataID=dataID), title='Delete'))
+    return oc
 
 ################################################################################
 
