@@ -209,12 +209,12 @@ def RemoveMovie(dataID):
 
 ################################################################################
 
-def DownloadComplete(sender, dataID):
+def DownloadComplete(dataID):
     '''Tell CouchPotato to mark the selected movie as a completed download'''
     url = Get_CP_URL() + '/movie/downloaded/?id=' + dataID
-    Log('Downloaded url: ' + url)
+    #Log('Downloaded url: ' + url)
     result = HTTP.Request(url, headers=AuthHeader()).content
-    return MessageContainer("CouchPotato", L('Marked Download Complete'))
+    return ObjectContainer(header="CouchPotato", message=L('Marked Download Complete'), no_history=True)
 
 ################################################################################
 
