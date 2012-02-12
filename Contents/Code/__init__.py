@@ -218,12 +218,12 @@ def DownloadComplete(dataID):
 
 ################################################################################
 
-def FailedRetry(sender, dataID):
+def FailedRetry(dataID):
     '''Tell CouchPotato to mark the selected movie as a failed download and retry using the same file'''
     url = Get_CP_URL() + '/movie/reAdd/?id=' + dataID
-    Log('Retry url: ' + url)
+    #Log('Retry url: ' + url)
     result = HTTP.Request(url, headers=AuthHeader()).content
-    return MessageContainer("CouchPotato", L('Downloaded re-added to queue'))
+    return ObjectContainer(header="CouchPotato", message=L('Downloaded re-added to queue'), no_history=True)
 
 ################################################################################
 
