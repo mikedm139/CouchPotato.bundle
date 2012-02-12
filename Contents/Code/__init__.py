@@ -142,7 +142,7 @@ def WaitingMenu(sender):
         #Log(title  + ' rating: ' + rating)
         year = item.xpath('./span')[1].text
         #Log(title + ' year: ' + year)
-        dir.Append(Function(PopupDirectoryItem(WantedList, title, year, summary, thumb=Function(GetThumb, url=thumbUrl)), key = item.xpath('.')[0].get('data-id')))
+        dir.Append(Function(PopupDirectoryItem(WantedList, title, year, summary, thumb=Function(GetThumb, url=thumbUrl)), dataID = item.xpath('.')[0].get('data-id')))
     
     return dir
   
@@ -160,7 +160,7 @@ def SnatchedMenu(sender):
         Log('parsing movie item')
         title = item.text.replace('\n','').replace('\t','')
         Log('Parsing ' + title)
-        dir.Append(Function(PopupDirectoryItem(SnatchedList, title, "Queued", summary, thumb), key = item.xpath('./a')[1].get('data-id')))
+        dir.Append(Function(PopupDirectoryItem(SnatchedList, title, "Queued", summary, thumb), dataID = item.xpath('./a')[1].get('data-id')))
     
     return dir
   
@@ -177,7 +177,7 @@ def DownloadedMenu(sender):
     for item in wantedPage.xpath('//div[@id="downloaded"]/span'):
         title = item.text.replace('\n','').replace('\t','')
         Log('Parsing ' + title)
-        dir.Append(Function(PopupDirectoryItem(SnatchedList, title, "Downloaded", summary, thumb), key = item.xpath('./a')[1].get('data-id')))
+        dir.Append(Function(PopupDirectoryItem(SnatchedList, title, "Downloaded", summary, thumb), dataID = item.xpath('./a')[1].get('data-id')))
     
     return dir
   
@@ -192,56 +192,56 @@ def WantedList(sender, dataID):
 
 ################################################################################
 
-def SnatchedList(sender, key):
+def SnatchedList(sender, dataID):
     '''Display an action-context menu for the selected movie'''
-    movieID = key
+    movieID = dataID
     dir = MediaContainer()
-    dir.Append(Function(DirectoryItem(DownloadComplete, title='Mark Download Complete'), key=movieID))
-    dir.Append(Function(DirectoryItem(FailedRetry, title='Failed - Try Again'), key=movieID))
-    dir.Append(Function(DirectoryItem(FailedFindNew, title='Failed - Find New Source'), key=movieID))
+    dir.Append(Function(DirectoryItem(DownloadComplete, title='Mark Download Complete'), dataID=movieID))
+    dir.Append(Function(DirectoryItem(FailedRetry, title='Failed - Try Again'), dataID=movieID))
+    dir.Append(Function(DirectoryItem(FailedFindNew, title='Failed - Find New Source'), dataID=movieID))
     return dir
 
 ################################################################################
 
-def ForceRefresh(sender, key):
+def ForceRefresh(sender, dataID):
     '''Force CouchPotato to refresh info and search for the selected movie'''
-    url = Get_CP_URL() + '/cron/forceSingle/?id=' + key
+    url = Get_CP_URL() + '/cron/forceSingle/?id=' + dataID
     Log('Forcecheck url: ' + url)
     result = HTTP.Request(url, headers=AuthHeader()).content
     return MessageContainer("CouchPotato", L('Forcing refresh/search'))
 
 ################################################################################
 
-def RemoveMovie(sender, key):
+def RemoveMovie(sender, dataID):
     '''Tell CouchPotato to remove the selected movie from the wanted list'''
-    url = Get_CP_URL() + '/movie/delete/?id=' + key
+    url = Get_CP_URL() + '/movie/delete/?id=' + dataID
     Log('DeleteMovie url: ' + url)
     result = HTTP.Request(url, headers=AuthHeader()).content
     return MessageContainer("CouchPotato", L('Deleting from wanted list'))
 
 ################################################################################
 
-def DownloadComplete(sender, key):
+def DownloadComplete(sender, dataID):
     '''Tell CouchPotato to mark the selected movie as a completed download'''
-    url = Get_CP_URL() + '/movie/downloaded/?id=' + key
+    url = Get_CP_URL() + '/movie/downloaded/?id=' + dataID
     Log('Downloaded url: ' + url)
     result = HTTP.Request(url, headers=AuthHeader()).content
     return MessageContainer("CouchPotato", L('Marked Download Complete'))
 
 ################################################################################
 
-def FailedRetry(sender, key):
+def FailedRetry(sender, dataID):
     '''Tell CouchPotato to mark the selected movie as a failed download and retry using the same file'''
-    url = Get_CP_URL() + '/movie/reAdd/?id=' + key
+    url = Get_CP_URL() + '/movie/reAdd/?id=' + dataID
     Log('Retry url: ' + url)
     result = HTTP.Request(url, headers=AuthHeader()).content
     return MessageContainer("CouchPotato", L('Downloaded re-added to queue'))
 
 ################################################################################
 
-def FailedFindNew(sender, key):
+def FailedFindNew(sender, dataID):
     '''Tell CouchPotato to mark the selected movie as a failed download and find a different file to retry'''
-    url = Get_CP_URL() + '/movie/reAdd/?id=' + key + '&failed=true'
+    url = Get_CP_URL() + '/movie/reAdd/?id=' + dataID + '&failed=true'
     Log('FindNew url: ' + url)
     result = HTTP.Request(url, headers=AuthHeader()).content
     return MessageContainer("CouchPotato", L('Movie re-added to "Wanted" list'))
