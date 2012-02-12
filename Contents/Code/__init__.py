@@ -191,12 +191,12 @@ def SnatchedList(dataID):
 
 ################################################################################
 
-def ForceRefresh(sender, dataID):
+def ForceRefresh(dataID):
     '''Force CouchPotato to refresh info and search for the selected movie'''
     url = Get_CP_URL() + '/cron/forceSingle/?id=' + dataID
-    Log('Forcecheck url: ' + url)
+    #Log('Forcecheck url: ' + url)
     result = HTTP.Request(url, headers=AuthHeader()).content
-    return MessageContainer("CouchPotato", L('Forcing refresh/search'))
+    return ObjectContainer(header="CouchPotato", message=L('Forcing refresh/search'), no_history=True)
 
 ################################################################################
 
