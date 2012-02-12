@@ -181,14 +181,13 @@ def WantedList(dataID):
 
 ################################################################################
 
-def SnatchedList(sender, dataID):
+def SnatchedList(dataID):
     '''Display an action-context menu for the selected movie'''
-    movieID = dataID
-    dir = MediaContainer()
-    dir.Append(Function(DirectoryItem(DownloadComplete, title='Mark Download Complete'), dataID=movieID))
-    dir.Append(Function(DirectoryItem(FailedRetry, title='Failed - Try Again'), dataID=movieID))
-    dir.Append(Function(DirectoryItem(FailedFindNew, title='Failed - Find New Source'), dataID=movieID))
-    return dir
+    oc = ObjectContainer()
+    oc.add(DirectoryObject(key=Callback(DownloadComplete, dataID=dataID), title='Mark Download Complete'))
+    oc.add(DirectoryObject(key=Callback(FailedRetry, dataID=dataID), title='Failed - Try Again'))
+    oc.add(DirectoryObject(key=Callback(FailedFindNew, dataID=dataID), title='Failed - Find New Source'))
+    return oc
 
 ################################################################################
 
