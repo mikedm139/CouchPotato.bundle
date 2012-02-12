@@ -154,20 +154,21 @@ def SnatchedMenu(sender):
   
 ################################################################################
 
-def DownloadedMenu(sender):
+def DownloadedMenu():
     '''Scrape downloaded movies from CouchPotato and populate the list with results'''
     url = Get_CP_URL() + '/movie/'
-    dir = MediaContainer(viewGroup="InfoList", title2="Downloaded", noCache=True)
+    oc = ObjectContainer(view_group="InfoList", title2="Downloaded", noCache=True)
     wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader(), cacheTime=0)
     thumb = R(DL_ICON)
     summary = 'This movie should now be available in your Plex library.'
     
     for item in wantedPage.xpath('//div[@id="downloaded"]/span'):
         title = item.text.replace('\n','').replace('\t','')
-        Log('Parsing ' + title)
-        dir.Append(Function(PopupDirectoryItem(SnatchedList, title, "Downloaded", summary, thumb), dataID = item.xpath('./a')[1].get('data-id')))
+        #Log('Parsing ' + title)
+        dataID = item.xpath('./a')[1].get('data-id')
+        oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb=thumb))
     
-    return dir
+    return oc
   
 ################################################################################
 
