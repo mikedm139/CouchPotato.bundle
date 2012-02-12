@@ -33,9 +33,9 @@ def Start():
     Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
     Plugin.AddViewGroup("List", viewMode="List", mediaType="items")
 
-    MediaContainer.art = R(ART)
-    MediaContainer.title1 = NAME
-    DirectoryItem.thumb = R(ICON)
+    ObjectContainer.art = R(ART)
+    ObjectContainer.title1 = NAME
+    DirectoryObject.thumb = R(ICON)
     HTTP.CacheTime=3600
 
 ####################################################################################################
