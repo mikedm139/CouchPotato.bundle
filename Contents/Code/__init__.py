@@ -61,17 +61,17 @@ def MainMenu():
     '''Populate main menu options'''
     oc = ObjectContainer(view_group="InfoList", title="CouchPotato", noCache=True)
 
-    oc.add(DirectoryObject(key=Callback(MoviesMenu, title="Manage your movies list",
-        summary="View and edit your CouchPotato wanted movies list",thumb=R(ICON))))
-    oc.add(DirectoryObject(key=Callback(ComingSoonMenu, title="Coming Soon",
-        summary="Browse upcoming movies and add them to your wanted list",thumb=R(ICON))))
-    oc.add(InputDirectoryObject(key=Callback(SearchResults,"Search for Movies",
-        summary="Find movies to add to your wanted list",thumb=R(SEARCH_ICON))))
+    oc.add(DirectoryObject(key=Callback(MoviesMenu), title="Manage your movies list",
+        summary="View and edit your CouchPotato wanted movies list",thumb=R(ICON)))
+    oc.add(DirectoryObject(key=Callback(ComingSoonMenu), title="Coming Soon",
+        summary="Browse upcoming movies and add them to your wanted list",thumb=R(ICON)))
+    oc.add(InputDirectoryObject(key=Callback(SearchResults), title="Search for Movies",
+        summary="Find movies to add to your wanted list",thumb=R(SEARCH_ICON)))
     oc.add(PrefsObject(title="Preferences", summary="Set prefs to allow plugin to connect to CouchPotato app",thumb=R(PREFS_ICON)))
     if UpdateAvailable():
         Log('Update available')
-        oc.add(PopupDirectoryObject(key=Callback(UpdateMenu, title='CouchPotato update available',
-            summary='Update your CouchPotato install to the newest version', thumb=R(ICON))))
+        oc.add(PopupDirectoryObject(key=Callback(UpdateMenu), title='CouchPotato update available',
+            summary='Update your CouchPotato install to the newest version', thumb=R(ICON)))
 
     return oc
 
@@ -81,42 +81,36 @@ def MoviesMenu():
     '''Populate the movies menu with available options'''
     oc = ObjectContainer(view_group="InfoList", title2="Wanted Movies")
 
-    oc.add(DirectoryObject(key=Callback(WantedMenu,"Wanted List",
-        summary="CouchPotato is watching for these movies",thumb=R(ICON))))
-    oc.add(DirectoryObject(key=Callback(WaitingMenu,"Waiting List",
-        summary='CouchPotato has found these movies but not in your defined "archive" quality, so it is still watching for better quality versions.', thumb=R(ICON))))
-    oc.add(DirectoryObject(key=Callback(SnatchedMenu,"Snatched List",
-        summary="CouchPotato has found these movies and is waiting for them to be downloaded.", thumb=R(SNATCHED_ICON))))
-    oc.add(DirectoryObject(key=Callback(DownloadedMenu,"Downloaded",
-        summary="CouchPotato has found and downloaded all these movies in the quality you requested. They should be available in your Plex library.", thumb=R(DL_ICON))))
+    oc.add(DirectoryObject(key=Callback(WantedMenu), title="Wanted List",
+        summary="CouchPotato is watching for these movies",thumb=R(ICON)))
+    oc.add(DirectoryObject(key=Callback(WaitingMenu), title="Waiting List",
+        summary='CouchPotato has found these movies but not in your defined "archive" quality, so it is still watching for better quality versions.', thumb=R(ICON)))
+    oc.add(DirectoryObject(key=Callback(SnatchedMenu), title="Snatched List",
+        summary="CouchPotato has found these movies and is waiting for them to be downloaded.", thumb=R(SNATCHED_ICON)))
+    oc.add(DirectoryObject(key=Callback(DownloadedMenu), title="Downloaded",
+        summary="CouchPotato has found and downloaded all these movies in the quality you requested. They should be available in your Plex library.", thumb=R(DL_ICON)))
     return oc
     
 ################################################################################
 
-def WantedMenu(sender):
+def WantedMenu():
     '''Scrape wanted movies from CouchPotato and populate the list with results'''
     url = Get_CP_URL()  + '/movie/'
-    dir = MediaContainer(viewGroup="InfoList", title2="Wanted", noCache=True)
+    oc = ObjectContainer(view_group="InfoList", title2="Wanted", noCache=True)
     wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader(), cacheTime=0)
     
     for item in wantedPage.xpath('//div[@class="item want"]'):
-        # get thumb from tmdb.org
-        tmdbLink = item.xpath('./span[@class="info"]/a')[1].get('href')
-        try: thumbUrl = HTML.ElementFromURL(
-            tmdbLink,errors='ignore').xpath(
-            '//div[@id="leftCol"]/a/img')[0].get(
-            'src')    
-        except: thumbUrl = 'http://hwcdn.themoviedb.org/images/no-poster.jpg'
+        thumb = Get_CP_URL() + item.xpath('.//img[@class="thumbnail"]')[0].get('src')
         title = item.xpath('./span/span/h2')[0].text
-        #Log('Parsing ' + title)
-        try: summary = item.xpath('./span/span/span')[0].text
+        try: summary = item.xpath('.//span[@class="overview"]')[0].text
         except: summary = 'No Overview'
-        try: rating = item.xpath('./span/span/span')[1].text
+        try: rating = item.xpath('./span[@class="rating"]')[0].text
         except: rating = 'No Rating'
-        year = item.xpath('./span')[1].text
-        dir.Append(Function(PopupDirectoryItem(WantedList, title, year, summary, thumb=Function(GetThumb, url=thumbUrl)), key = item.xpath('.')[0].get('data-id')))
+        year = item.xpath('.//span[@class="year"]')[0].text
+        dataID = item.xpath('.')[0].get('data-id')
+        oc.add(PopupDirectoryObject(key=Callback(WantedList, dataID=dataID), title=title, year=year, summary=summary, thumb=Callback(GetThumb, url=thumbUrl)))
     
-    return dir
+    return oc
   
 ################################################################################
 
@@ -189,12 +183,11 @@ def DownloadedMenu(sender):
   
 ################################################################################
 
-def WantedList(sender, key):
+def WantedList(sender, dataID):
     '''Display an action-context menu for the selected movie'''
-    movieID = key
     dir = MediaContainer(title2="Wanted Movies")
-    dir.Append(Function(DirectoryItem(ForceRefresh, title='Refresh'), key=movieID))
-    dir.Append(Function(DirectoryItem(RemoveMovie, title='Delete'), key=movieID))
+    dir.Append(Function(DirectoryItem(ForceRefresh, title='Refresh'), dataID=dataID))
+    dir.Append(Function(DirectoryItem(RemoveMovie, title='Delete'), dataID=dataID))
     return dir
 
 ################################################################################
@@ -505,7 +498,8 @@ def GetThumb(url=None, link=None):
         data = HTTP.Request(url, cacheTime=CACHE_1MONTH)
         return DataObject(data, 'image/jpeg')
     except:
-        return Redirect(R(ICON))
+        data = HTTP.Request('http://hwcdn.themoviedb.org/images/no-poster.jpg', cacheTime=CACHE_1MONTH)
+        return DataObject(data, 'image/jpeg')
         
 ################################################################################
 
