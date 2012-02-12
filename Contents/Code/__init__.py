@@ -227,12 +227,12 @@ def FailedRetry(dataID):
 
 ################################################################################
 
-def FailedFindNew(sender, dataID):
+def FailedFindNew(dataID):
     '''Tell CouchPotato to mark the selected movie as a failed download and find a different file to retry'''
     url = Get_CP_URL() + '/movie/reAdd/?id=' + dataID + '&failed=true'
-    Log('FindNew url: ' + url)
+    #Log('FindNew url: ' + url)
     result = HTTP.Request(url, headers=AuthHeader()).content
-    return MessageContainer("CouchPotato", L('Movie re-added to "Wanted" list'))
+    return ObjectContainer(header="CouchPotato", message=L('Movie re-added to "Wanted" list'), no_history=True)
 
 ################################################################################
 
