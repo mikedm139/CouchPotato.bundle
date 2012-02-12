@@ -21,20 +21,10 @@ MOVIE_ICON    = 'movie-reel.jpg'
 THEATRE_ICON  = 'popcorn.jpg'
 BD_ICON       = 'BD_icon.jpg'
 
-#TRAILER RELATED GLOBAL VARIABLES#
-##BORROWED FROM AVForums PLUGIN##
-YOUTUBE_VIDEO_PAGE = 'http://www.youtube.com/watch?v=%s'
-YT_GET_VIDEO_URL = 'http://www.youtube.com/get_video?video_id=%s&t=%s&fmt=%d&asv=3'
-
-YOUTUBE_VIDEO_FORMATS = ['Standard', 'Medium', 'High', '720p', '1080p']
-YOUTUBE_FMT = [34, 18, 35, 22, 37]
-
 ####################################################################################################
 
 def Start():
     '''Setup plugin for use'''
-    #Plugin.AddPrefixHandler(APPLICATIONS_PREFIX, MainMenu, L('CouchPotato'), ICON, ART)
-    
     if Dict['MovieSectionID'] == None:
         Plugin.AddPrefixHandler(APPLICATIONS_PREFIX, GetMovieSectionID, NAME, ICON, ART)
     else:
@@ -47,9 +37,6 @@ def Start():
     MediaContainer.title1 = NAME
     DirectoryItem.thumb = R(ICON)
     HTTP.CacheTime=3600
-
-    #if Prefs['cpUser'] and Prefs['cpPass']:
-    #    HTTP.SetPassword(url=Get_CP_URL(), username=Prefs['cpUser'], password=Prefs['cpPass'])
 
 ####################################################################################################
 
@@ -507,36 +494,6 @@ def TrailerMenu(sender, url="", youtubeID=None, provider=""):
     
     return dir
     
-################################################################################
-
-def YtPlayVideo(sender, video_id):
-  yt_page = HTTP.Request(YOUTUBE_VIDEO_PAGE % (video_id), cacheTime=1).content
-
-  fmt_url_map = re.findall('"fmt_url_map".+?"([^"]+)', yt_page)[0]
-  fmt_url_map = fmt_url_map.replace('\/', '/').split(',')
-
-  fmts = []
-  fmts_info = {}
-
-  for f in fmt_url_map:
-    (fmt, url) = f.split('|')
-    fmts.append(fmt)
-    fmts_info[str(fmt)] = url
-
-  index = YOUTUBE_VIDEO_FORMATS.index(Prefs['ytfmt'])
-  if YOUTUBE_FMT[index] in fmts:
-    fmt = YOUTUBE_FMT[index]
-  else:
-    for i in reversed( range(0, index+1) ):
-      if str(YOUTUBE_FMT[i]) in fmts:
-        fmt = YOUTUBE_FMT[i]
-        break
-      else:
-        fmt = 5
-
-  url = fmts_info[str(fmt)]
-  return Redirect(url)
-
 ################################################################################
 
 def GetThumb(url=None, link=None):
