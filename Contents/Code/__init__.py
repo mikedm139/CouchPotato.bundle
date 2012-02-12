@@ -79,17 +79,17 @@ def MainMenu():
 
 def MoviesMenu(sender):
     '''Populate the movies menu with available options'''
-    dir = MediaContainer(viewGroup="InfoList", title2="Wanted Movies")
+    oc = ObjectContainer(view_group="InfoList", title2="Wanted Movies")
 
-    dir.Append(Function(DirectoryItem(WantedMenu,"Wanted", subtitle=None,
-        summary="View and edit your wanted movies list",thumb=R(ICON))))
-    dir.Append(Function(DirectoryItem(WaitingMenu,"Waiting", subtitle=None,
-        summary="View and edit list of waiting movies from your wanted list",thumb=R(ICON))))
-    dir.Append(Function(DirectoryItem(SnatchedMenu,"Snatched", subtitle=None,
-        summary="View and edit list of snatched movies from your wanted list",thumb=R(SNATCHED_ICON))))
-    dir.Append(Function(DirectoryItem(DownloadedMenu,"Downloaded", subtitle=None,
-        summary="View and edit list of downloaded movies from your wanted list",thumb=R(DL_ICON))))
-    return dir
+    oc.add(DirectoryObject(key=Callback(WantedMenu,"Wanted List",
+        summary="CouchPotato is watching for these movies",thumb=R(ICON))))
+    oc.add(DirectoryObject(key=Callback(WaitingMenu,"Waiting List",
+        summary='CouchPotato has found these movies but not in your defined "archive" quality, so it is still watching for better quality versions.', thumb=R(ICON))))
+    oc.add(DirectoryObject(key=Callback(SnatchedMenu,"Snatched List",
+        summary="CouchPotato has found these movies and is waiting for them to be downloaded.", thumb=R(SNATCHED_ICON))))
+    oc.add(DirectoryObject(key=Callback(DownloadedMenu,"Downloaded",
+        summary="CouchPotato has found and downloaded all these movies in the quality you requested. They should be available in your Plex library.", thumb=R(DL_ICON))))
+    return oc
     
 ################################################################################
 
