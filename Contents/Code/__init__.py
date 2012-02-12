@@ -108,43 +108,31 @@ def WantedMenu():
         except: rating = 'No Rating'
         year = item.xpath('.//span[@class="year"]')[0].text
         dataID = item.xpath('.')[0].get('data-id')
-        oc.add(PopupDirectoryObject(key=Callback(WantedList, dataID=dataID), title=title, year=year, summary=summary, thumb=Callback(GetThumb, url=thumbUrl)))
+        oc.add(PopupDirectoryObject(key=Callback(WantedList, dataID=dataID), title=title, year=year, summary=summary, thumb=Callback(GetThumb, url=thumb)))
     
     return oc
   
 ################################################################################
 
-def WaitingMenu(sender):
+def WaitingMenu():
     '''Scrape waiting movies from CouchPotato and populate the list with results.
         Note: waiting movies differ from wanted movies only by one tag'''
     url = Get_CP_URL() + '/movie/'
-    dir = MediaContainer(viewGroup="InfoList", title2="Waiting", noCache=True)
+    oc = ObjectContainer(view_group="InfoList", title2="Waiting", noCache=True)
     wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader(), cacheTime=0)
     
     for item in wantedPage.xpath('//div[@class="item waiting"]'):
-        #Log('parsing movie item')
-        # get thumb from tmdb.org
-        tmdbLink = item.xpath('./span[@class="info"]/a')[1].get('href')
-        #Log('tmdb: ' + tmdbLink)
-        #thumb = GetPoster(tmdbLink)
-        try: thumbUrl = HTML.ElementFromURL(
-            tmdbLink,errors='ignore').xpath(
-            '//div[@id="leftCol"]/a/img')[0].get(
-            'src')    
-        except: thumbUrl = 'http://hwcdn.themoviedb.org/images/no-poster.jpg'
+        thumb = Get_CP_URL() + item.xpath('.//img[@class="thumbnail"]')[0].get('src')
         title = item.xpath('./span/span/h2')[0].text
-        #Log('Parsing ' + title)
-        try: summary = item.xpath('./span/span/span')[0].text
+        try: summary = item.xpath('.//span[@class="overview"]')[0].text
         except: summary = 'No Overview'
-        #Log(title + ' overview: ...')
-        try: rating = item.xpath('./span/span/span')[1].text
+        try: rating = item.xpath('./span[@class="rating"]')[0].text
         except: rating = 'No Rating'
-        #Log(title  + ' rating: ' + rating)
-        year = item.xpath('./span')[1].text
-        #Log(title + ' year: ' + year)
-        dir.Append(Function(PopupDirectoryItem(WantedList, title, year, summary, thumb=Function(GetThumb, url=thumbUrl)), dataID = item.xpath('.')[0].get('data-id')))
+        year = item.xpath('.//span[@class="year"]')[0].text
+        dataID = item.xpath('.')[0].get('data-id')
+        oc.add(PopupDirectoryObject(key=Callback(WantedList, dataID=dataID), title=title, year=year, summary=summary, thumb=Callback(GetThumb, url=thumb)))
     
-    return dir
+    return oc
   
 ################################################################################
 
