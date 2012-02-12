@@ -136,21 +136,21 @@ def WaitingMenu():
   
 ################################################################################
 
-def SnatchedMenu(sender):
+def SnatchedMenu():
     '''Scrape snatched movies from CouchPotato and populate the list with results'''
     url = Get_CP_URL() + '/movie/'
-    dir = MediaContainer(viewGroup="InfoList", title2="Snatched", noCache=True)
+    oc = ObjectContainer(view_group="InfoList", title2="Snatched", noCache=True)
     wantedPage = HTML.ElementFromURL(url, errors='ignore', cacheTime=0)
     thumb = R(SNATCHED_ICON)
     summary = 'This movie should now appear in your downloads queue.'
     
     for item in wantedPage.xpath('//div[@id="snatched"]/span'):
-        Log('parsing movie item')
+        #Log('parsing movie item')
         title = item.text.replace('\n','').replace('\t','')
-        Log('Parsing ' + title)
-        dir.Append(Function(PopupDirectoryItem(SnatchedList, title, "Queued", summary, thumb), dataID = item.xpath('./a')[1].get('data-id')))
+        #Log('Parsing ' + title)
+        oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb=thumb))
     
-    return dir
+    return oc
   
 ################################################################################
 
