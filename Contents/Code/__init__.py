@@ -59,23 +59,21 @@ def ValidatePrefs():
 
 def MainMenu():
     '''Populate main menu options'''
-    dir = MediaContainer(viewGroup="InfoList", title="CouchPotato", noCache=True, cacheTime=0)
+    oc = ObjectContainer(view_group="InfoList", title="CouchPotato", noCache=True)
 
-    dir.Append(Function(DirectoryItem(MoviesMenu,"Movies","Wanted List",
+    oc.add(DirectoryObject(key=Callback(MoviesMenu, title="Manage your movies list",
         summary="View and edit your CouchPotato wanted movies list",thumb=R(ICON))))
-    dir.Append(Function(DirectoryItem(ComingSoonMenu,"Coming Soon", "",
+    oc.add(DirectoryObject(key=Callback(ComingSoonMenu, title="Coming Soon",
         summary="Browse upcoming movies and add them to your wanted list",thumb=R(ICON))))
-    dir.Append(Function(InputDirectoryItem(SearchResults,"Search","Movie Search",
+    oc.add(InputDirectoryObject(key=Callback(SearchResults,"Search for Movies",
         summary="Find movies to add to your wanted list",thumb=R(SEARCH_ICON))))
-    dir.Append(PrefsItem(title="Preferences",subtitle="CouchPotato plugin preferences",
-        summary="Set prefs to allow plugin to connect to CouchPotato app",thumb=R(PREFS_ICON)))
+    oc.add(PrefsObject(title="Preferences", summary="Set prefs to allow plugin to connect to CouchPotato app",thumb=R(PREFS_ICON)))
     if UpdateAvailable():
         Log('Update available')
-        dir.Append(Function(PopupDirectoryItem(UpdateMenu, title='CouchPotato update available',
-            subtitle='Ruudburger\'s been busy', summary='Update your CouchPotato install to the newest version',
-            thumb=R(ICON))))
+        oc.add(PopupDirectoryObject(key=Callback(UpdateMenu, title='CouchPotato update available',
+            summary='Update your CouchPotato install to the newest version', thumb=R(ICON))))
 
-    return dir
+    return oc
 
 ################################################################################
 
