@@ -77,7 +77,7 @@ def MainMenu():
 
 ################################################################################
 
-def MoviesMenu(sender):
+def MoviesMenu():
     '''Populate the movies menu with available options'''
     oc = ObjectContainer(view_group="InfoList", title2="Wanted Movies")
 
