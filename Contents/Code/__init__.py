@@ -236,7 +236,7 @@ def FailedFindNew(dataID):
 
 ################################################################################
 
-def SearchResults(sender,query):
+def SearchResults(query):
     '''Search themoviedb.org for movies using user input, and populate a list with the results'''
     oc = ObjectContainer(title2="Search Results", view_group="InfoList")
     #Log('Search term(s): ' + query)
