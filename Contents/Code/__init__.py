@@ -238,8 +238,8 @@ def FailedFindNew(dataID):
 
 def SearchResults(sender,query):
     '''Search themoviedb.org for movies using user input, and populate a list with the results'''
-    dir = MediaContainer(title2="Search Results", viewGroup="InfoList")
-    Log('Search term(s): ' + query)
+    oc = ObjectContainer(title2="Search Results", view_group="InfoList")
+    #Log('Search term(s): ' + query)
     
     resultList = XML.ElementFromURL(
         'http://api.themoviedb.org/2.1/Movie.search/en/xml/9b939aee0aaafc12a65bf448e4af9543/' +
@@ -259,7 +259,7 @@ def SearchResults(sender,query):
                 year = None
             overview = movie.find('overview').text
             try:
-                posterUrl = movie.find('images').xpath('image')[0].get('url')
+                posterUrl = movie.xpath('.//image[@type="poster"]')[-1].get('url')
             except:
                 posterUrl = 'http://hwcdn.themoviedb.org/images/no-poster.jpg'
             link = movie.find('url').text
@@ -269,15 +269,14 @@ def SearchResults(sender,query):
                 if trailerText == "No ":
                     link = ""
             except:
-                link = ''    
+                link = ""    
         
             if year != None:
                 Log(movieTitle + ' ('+year+') ' + ' found'),
-                dir.Append(Function(PopupDirectoryItem(AddMovieMenu,
-                        title=movieTitle, subtitle=year, summary=overview, thumb=Function(GetThumb, url=posterUrl)),
-                    id=imdbID, year=year, url=link, provider="TMDB")),
+                oc.add(PopupDirectoryObject(key=Callback(AddMovieMenu, id=imdbID, year=year, url=link, provider="TMDB"),
+                        title=movieTitle, subtitle=year, summary=overview, thumb=Function(GetThumb, url=posterUrl)))
                 resultCount = resultCount+1
-    return dir
+    return oc
     
 ################################################################################
 
