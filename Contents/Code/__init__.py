@@ -280,18 +280,14 @@ def SearchResults(query):
     
 ################################################################################
 
-def AddMovieMenu(sender, id, year, url="", youtubeID=None, provider=""):
+def AddMovieMenu(id, year, url="", youtubeID=None, provider=""):
     '''Display an action/context menu for the selected movie'''
-    dir = MediaContainer()
-    dir.Append(Function(DirectoryItem(AddMovie, title='Add to Wanted list'), id=id, year=year))
-    dir.Append(Function(DirectoryItem(QualitySelectMenu, title='Select quality to add'), id=id, year=year))
+    oc = ObjectContainer()
+    oc.add(DirectoryObject(key=Callback(AddMovie, id=id, year=year), title='Add to Wanted list'))
+    oc.add(DirectoryObject(key=Callback(QualitySelectMenu, id=id, year=year), title='Select quality to add'))
     #if url != "":
-    #    dir.Append(Function(DirectoryItem(TrailerMenu, title='Watch A Trailer'), url=url, provider=provider))
-    #elif youtubeID:
-    #    dir.Append(Function(DirectoryItem(TrailerMenu, title='Watch A Trailer'), youtubeID=youtubeID, provider=provider))
-    #else:
-    #    pass
-    return dir
+    #    oc.add(DirectoryObject(key=Callback(TrailerMenu, url=url, provider=provider), title='Watch A Trailer'))
+    return oc
 
 ################################################################################
 
