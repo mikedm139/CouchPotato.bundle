@@ -63,8 +63,8 @@ def MainMenu():
 
     oc.add(DirectoryObject(key=Callback(MoviesMenu), title="Manage your movies list",
         summary="View and edit your CouchPotato wanted movies list",thumb=R(ICON)))
-    oc.add(DirectoryObject(key=Callback(ComingSoonMenu), title="Coming Soon",
-        summary="Browse upcoming movies and add them to your wanted list",thumb=R(ICON)))
+    #oc.add(DirectoryObject(key=Callback(ComingSoonMenu), title="Coming Soon",
+    #    summary="Browse upcoming movies and add them to your wanted list",thumb=R(ICON)))
     oc.add(InputDirectoryObject(key=Callback(SearchResults), title="Search for Movies",
         summary="Find movies to add to your wanted list",thumb=R(SEARCH_ICON)))
     oc.add(PrefsObject(title="Preferences", summary="Set prefs to allow plugin to connect to CouchPotato app",thumb=R(PREFS_ICON)))
