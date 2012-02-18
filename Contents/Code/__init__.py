@@ -303,171 +303,171 @@ def AddMovie(id, year):
     return ObjectContainer(header="CouchPotato", message=L("Added to Wanted list."), no_history=True)
 
 ################################################################################
-
-def ComingSoonMenu(sender):
-    dir = MediaContainer(title2="Coming Soon")
-    dir.Append(Function(DirectoryItem(ComingToTheatres, title="Coming to Theatres", thumb=R(THEATRE_ICON))))
-    dir.Append(Function(DirectoryItem(ComingToBluray, title="Coming to Bluray", thumb=R(BD_ICON))))
-    dir.Append(Function(DirectoryItem(NewReleases,"New on DVD/BluRay", thumb=R(ICON))))
-    
-    return dir
-
+#
+#def ComingSoonMenu(sender):
+#    dir = MediaContainer(title2="Coming Soon")
+#    dir.Append(Function(DirectoryItem(ComingToTheatres, title="Coming to Theatres", thumb=R(THEATRE_ICON))))
+#    dir.Append(Function(DirectoryItem(ComingToBluray, title="Coming to Bluray", thumb=R(BD_ICON))))
+#    dir.Append(Function(DirectoryItem(NewReleases,"New on DVD/BluRay", thumb=R(ICON))))
+#    
+#    return dir
+#
 ################################################################################
-
-def ComingToTheatres(sender):
-    '''Scrape themovieinsider.com for coming soon movies and populate a list'''
-    url = 'http://www.themovieinsider.com/movies/coming-soon/'
-    dir = MediaContainer(viewGroup="InfoList", title2="Coming Soon", noCache=True)
-    comingSoonPage = HTML.ElementFromURL(url, errors='ignore')
-    
-    for comingMovie in comingSoonPage.xpath('//h3'):
-        link = comingMovie.xpath('./a')[0].get('href')
-        movieName = comingMovie.xpath('./a')[0].text
-        movieInfoPage = HTML.ElementFromURL(link, errors='ignore')
-        try:
-            movieTagLine = movieInfoPage.xpath('//p[@id="tagline"]')[0].text
-            Log(movieTagLine)
-        except:
-            movieTagLine = ''
-        movieYear = movieInfoPage.xpath('//table[@id="profileData"]/tr/td/a')[1].text
-        Log(movieYear)
-        try:
-            movieOverview = movieInfoPage.xpath('//div[@id="synopsis"]/text()')[0]
-            Log(movieOverview)
-        except:
-            movieOverview = ''
-        try:
-            imdbLink = movieInfoPage.xpath('//div[@id="relatedLinks"]/ul/li/a')[0].get('href')
-            imdbID = str(imdbLink)[26:-1]
-            Log(imdbID)
-        except:
-            continue
-        dir.Append(Function(PopupDirectoryItem(AddMovieMenu,
-                title=(movieName+' ('+movieYear+')'),
-                subtitle=movieTagLine,
-                summary = movieOverview,
-                thumb = Function(GetThumb, link=link)),
-            id=imdbID, year=movieYear, url=link, provider="MovieInsider"))
-        
-    return dir
-
+#
+#def ComingToTheatres(sender):
+#    '''Scrape themovieinsider.com for coming soon movies and populate a list'''
+#    url = 'http://www.themovieinsider.com/movies/coming-soon/'
+#    dir = MediaContainer(viewGroup="InfoList", title2="Coming Soon", noCache=True)
+#    comingSoonPage = HTML.ElementFromURL(url, errors='ignore')
+#    
+#    for comingMovie in comingSoonPage.xpath('//h3'):
+#        link = comingMovie.xpath('./a')[0].get('href')
+#        movieName = comingMovie.xpath('./a')[0].text
+#        movieInfoPage = HTML.ElementFromURL(link, errors='ignore')
+#        try:
+#            movieTagLine = movieInfoPage.xpath('//p[@id="tagline"]')[0].text
+#            Log(movieTagLine)
+#        except:
+#            movieTagLine = ''
+#        movieYear = movieInfoPage.xpath('//table[@id="profileData"]/tr/td/a')[1].text
+#        Log(movieYear)
+#        try:
+#            movieOverview = movieInfoPage.xpath('//div[@id="synopsis"]/text()')[0]
+#            Log(movieOverview)
+#        except:
+#            movieOverview = ''
+#        try:
+#            imdbLink = movieInfoPage.xpath('//div[@id="relatedLinks"]/ul/li/a')[0].get('href')
+#            imdbID = str(imdbLink)[26:-1]
+#            Log(imdbID)
+#        except:
+#            continue
+#        dir.Append(Function(PopupDirectoryItem(AddMovieMenu,
+#                title=(movieName+' ('+movieYear+')'),
+#                subtitle=movieTagLine,
+#                summary = movieOverview,
+#                thumb = Function(GetThumb, link=link)),
+#            id=imdbID, year=movieYear, url=link, provider="MovieInsider"))
+#        
+#    return dir
+#
 ################################################################################
-
-def ComingToBluray(sender):
-    '''Scrape themovieinsider.com for coming soon movies and populate a list'''
-    url = 'http://www.themovieinsider.com/blu-rays/coming-soon/'
-    dir = MediaContainer(viewGroup="InfoList", title2="Coming Soon", noCache=True)
-    comingSoonPage = HTML.ElementFromURL(url, errors='ignore')
-    
-    for comingMovie in comingSoonPage.xpath('//h3'):
-        link = comingMovie.xpath('./a')[0].get('href')
-        movieName = comingMovie.xpath('./a')[0].text
-        movieInfoPage = HTML.ElementFromURL(link,errors='ignore')
-        try:
-            movieTagLine = movieInfoPage.xpath('//p[@id="tagline"]')[0].text
-            Log(movieTagLine)
-        except:
-            movieTagLine = ''
-        movieYear = movieInfoPage.xpath('//table[@id="profileData"]/tr/td/a')[1].text
-        try:
-            movieOverview = movieInfoPage.xpath('//div[@id="synopsis"]/text()')[0]
-        except:
-            movieOverview = ""
-        try:
-            imdbLink = movieInfoPage.xpath('//div[@id="relatedLinks"]/ul/li/a')[0].get('href')
-            imdbID = str(imdbLink)[26:-1]
-        except:
-            continue
-        dir.Append(Function(PopupDirectoryItem(AddMovieMenu,
-                title=(movieName+' ('+movieYear+')'),
-                subtitle=movieTagLine,
-                summary = movieOverview,
-                thumb = Function(GetThumb, link=link)),
-            id=imdbID, year=movieYear, url=link, provider="MovieInsider"))
-        
-    return dir
-
+#
+#def ComingToBluray(sender):
+#    '''Scrape themovieinsider.com for coming soon movies and populate a list'''
+#    url = 'http://www.themovieinsider.com/blu-rays/coming-soon/'
+#    dir = MediaContainer(viewGroup="InfoList", title2="Coming Soon", noCache=True)
+#    comingSoonPage = HTML.ElementFromURL(url, errors='ignore')
+#    
+#    for comingMovie in comingSoonPage.xpath('//h3'):
+#        link = comingMovie.xpath('./a')[0].get('href')
+#        movieName = comingMovie.xpath('./a')[0].text
+#        movieInfoPage = HTML.ElementFromURL(link,errors='ignore')
+#        try:
+#            movieTagLine = movieInfoPage.xpath('//p[@id="tagline"]')[0].text
+#            Log(movieTagLine)
+#        except:
+#            movieTagLine = ''
+#        movieYear = movieInfoPage.xpath('//table[@id="profileData"]/tr/td/a')[1].text
+#        try:
+#            movieOverview = movieInfoPage.xpath('//div[@id="synopsis"]/text()')[0]
+#        except:
+#            movieOverview = ""
+#        try:
+#            imdbLink = movieInfoPage.xpath('//div[@id="relatedLinks"]/ul/li/a')[0].get('href')
+#            imdbID = str(imdbLink)[26:-1]
+#        except:
+#            continue
+#        dir.Append(Function(PopupDirectoryItem(AddMovieMenu,
+#                title=(movieName+' ('+movieYear+')'),
+#                subtitle=movieTagLine,
+#                summary = movieOverview,
+#                thumb = Function(GetThumb, link=link)),
+#            id=imdbID, year=movieYear, url=link, provider="MovieInsider"))
+#        
+#    return dir
+#
 ################################################################################
-
-def NewReleases(sender):
-    '''Scrape PopularNewReleases.com for recent BluRay releases'''
-    url = 'http://popularnewreleases.com/index.php?sort=release-date'
-    dir = MediaContainer(viewGroup="InfoList", title2="New Releases", noCache=True)
-    newReleasePage = HTML.ElementFromURL(url, errors='ignore')
-    
-    for movie in newReleasePage.xpath('//table[@class="movie"]'):
-        movieTitle = movie.xpath('.//h1[@class="title"]/a')[0].text
-        Log('Found - New Release: '+movieTitle)
-        try: posterUrl = movie.xpath('.//img[@class="movieart"]')[0].get('src')
-        except: posterUrl = 'http://hwcdn.themoviedb.org/images/no-poster.jpg'
-        try:
-            youtubetrailer=movie.xpath('.//a[@class="trailer-link internal-action-link"]')[0].get('youtubeid')
-        except:
-            youtubetrailer=None
-        Log('YouTubeID: '+str(youtubetrailer))
-        try:
-            BDReleaseDate = movie.xpath('.//td[@class="on-video"]')[0].text
-        except:
-            BDReleaseDate = ""    
-        movieYear = movie.xpath('.//span[@class="theatrical-release-year"]')[0].text.split('(')[1].split(')')[0]
-        Log('Release year: '+movieYear)
-        try:
-            movieOverview = movie.xpath('.//p[@class="synopsis"]')[0].text
-        except:
-            movieOverview = ""
-        imdbID = movie.xpath('.//a[@class="external-action-link"]')[0].get('href').split('title/tt')[1]
-            
-        Log('imdbID: ' + imdbID)
-        dir.Append(Function(PopupDirectoryItem(AddMovieMenu,
-                title=(movieTitle+' ('+movieYear+')'),
-                subtitle=('Release: '+BDReleaseDate),
-                summary = movieOverview,
-                thumb = Function(GetThumb, url=posterUrl)),
-            id=imdbID, year=movieYear, youtubeID=youtubetrailer, provider="MovieInsider"))
-        
-    return dir
-
+#
+#def NewReleases(sender):
+#    '''Scrape PopularNewReleases.com for recent BluRay releases'''
+#    url = 'http://popularnewreleases.com/index.php?sort=release-date'
+#    dir = MediaContainer(viewGroup="InfoList", title2="New Releases", noCache=True)
+#    newReleasePage = HTML.ElementFromURL(url, errors='ignore')
+#    
+#    for movie in newReleasePage.xpath('//table[@class="movie"]'):
+#        movieTitle = movie.xpath('.//h1[@class="title"]/a')[0].text
+#        Log('Found - New Release: '+movieTitle)
+#        try: posterUrl = movie.xpath('.//img[@class="movieart"]')[0].get('src')
+#        except: posterUrl = 'http://hwcdn.themoviedb.org/images/no-poster.jpg'
+#        try:
+#            youtubetrailer=movie.xpath('.//a[@class="trailer-link internal-action-link"]')[0].get('youtubeid')
+#        except:
+#            youtubetrailer=None
+#        Log('YouTubeID: '+str(youtubetrailer))
+#        try:
+#            BDReleaseDate = movie.xpath('.//td[@class="on-video"]')[0].text
+#        except:
+#            BDReleaseDate = ""    
+#        movieYear = movie.xpath('.//span[@class="theatrical-release-year"]')[0].text.split('(')[1].split(')')[0]
+#        Log('Release year: '+movieYear)
+#        try:
+#            movieOverview = movie.xpath('.//p[@class="synopsis"]')[0].text
+#        except:
+#            movieOverview = ""
+#        imdbID = movie.xpath('.//a[@class="external-action-link"]')[0].get('href').split('title/tt')[1]
+#            
+#        Log('imdbID: ' + imdbID)
+#        dir.Append(Function(PopupDirectoryItem(AddMovieMenu,
+#                title=(movieTitle+' ('+movieYear+')'),
+#                subtitle=('Release: '+BDReleaseDate),
+#                summary = movieOverview,
+#                thumb = Function(GetThumb, url=posterUrl)),
+#            id=imdbID, year=movieYear, youtubeID=youtubetrailer, provider="MovieInsider"))
+#        
+#    return dir
+#
 ################################################################################
-
-def TrailerMenu(sender, url="", youtubeID=None, provider=""):
-    '''Display a list of WebVideoItem trailers for the selected movie (coming soon menu and *maybe search menu)'''
-        
-    cookies = HTTP.GetCookiesForURL('http://www.youtube.com')
-
-    dir = MediaContainer(ViewGroup="InfoList", title2="Trailers", httpCookies=cookies, noCache=True)
-       
-    if provider == "MovieInsider":
-        for trailer in HTML.ElementFromURL(url).xpath('//div[@id="trailer"]/a'):
-            trailerID = str(trailer.xpath('div')[0].get('style'))[44:-14]
-            trailerThumb = str(trailer.xpath('div')[0].get('style'))[21:-2]
-            trailerTitle = trailer.xpath('div/p/ins[@class="icon play"]/parent::p/text()')[0]
-            #Log(trailerTitle)
-            dir.Append(Function(WebVideoItem(YtPlayVideo,
-                    title=trailerTitle,
-                    thumb=trailerThumb),
-                video_id=trailerID))
-    
-    elif provider == "TMDB":
-        for trailer in HTML.ElementFromURL(url).xpath('//p[@class="trailers"]/a'):
-            trailerID = str(trailer.get('href'))[31:-5]
-            #Log('TrailerID: '+trailerID)
-            thumbUrl = 'http://i2.ytimg.com/vi/'+trailerID+'/default.jpg'
-            trailerTitle = trailer.text
-            #Log(trailerTitle)
-            dir.Append(Function(WebVideoItem(YtPlayVideo,
-                    title=trailerTitle,
-                    thumb=Function(GetThumb, url=thumbUrl)),
-                video_id=trailerID))
-            
-    elif provider == "PopularNewReleases":
-        thumbUrl = 'http://i2.ytimg.com/vi/%s/default.jpg' % youtubeID
-        dir.Append(Function(WebVideoItem(YtPlayVideo, title='Trailer',
-            thumb=Function(GetThumb, url=thumbUrl)), video_id=youtubeID))
-
-    else: pass
-    
-    return dir
-    
+#
+#def TrailerMenu(sender, url="", youtubeID=None, provider=""):
+#    '''Display a list of WebVideoItem trailers for the selected movie (coming soon menu and *maybe search menu)'''
+#        
+#    cookies = HTTP.GetCookiesForURL('http://www.youtube.com')
+#
+#    dir = MediaContainer(ViewGroup="InfoList", title2="Trailers", httpCookies=cookies, noCache=True)
+#       
+#    if provider == "MovieInsider":
+#        for trailer in HTML.ElementFromURL(url).xpath('//div[@id="trailer"]/a'):
+#            trailerID = str(trailer.xpath('div')[0].get('style'))[44:-14]
+#            trailerThumb = str(trailer.xpath('div')[0].get('style'))[21:-2]
+#            trailerTitle = trailer.xpath('div/p/ins[@class="icon play"]/parent::p/text()')[0]
+#            #Log(trailerTitle)
+#            dir.Append(Function(WebVideoItem(YtPlayVideo,
+#                    title=trailerTitle,
+#                    thumb=trailerThumb),
+#                video_id=trailerID))
+#    
+#    elif provider == "TMDB":
+#        for trailer in HTML.ElementFromURL(url).xpath('//p[@class="trailers"]/a'):
+#            trailerID = str(trailer.get('href'))[31:-5]
+#            #Log('TrailerID: '+trailerID)
+#            thumbUrl = 'http://i2.ytimg.com/vi/'+trailerID+'/default.jpg'
+#            trailerTitle = trailer.text
+#            #Log(trailerTitle)
+#            dir.Append(Function(WebVideoItem(YtPlayVideo,
+#                    title=trailerTitle,
+#                    thumb=Function(GetThumb, url=thumbUrl)),
+#                video_id=trailerID))
+#            
+#    elif provider == "PopularNewReleases":
+#        thumbUrl = 'http://i2.ytimg.com/vi/%s/default.jpg' % youtubeID
+#        dir.Append(Function(WebVideoItem(YtPlayVideo, title='Trailer',
+#            thumb=Function(GetThumb, url=thumbUrl)), video_id=youtubeID))
+#
+#    else: pass
+#    
+#    return dir
+#    
 ################################################################################
 
 def GetThumb(url=None, link=None):
@@ -565,45 +565,3 @@ def AddWithQuality(sender, id, year, quality):
     moviedAdded = HTTP.Request(url+'imdbAdd/?id='+id+'&year='+year, post_values, headers=AuthHeader())
     
     return MessageContainer("CouchPotato", L("Added to Wanted list."))
-    
-####################################################################################################
-
-def GetMovieSectionID():
-    '''Determine what section(s) are Movies in Plex library'''
-    
-    dir = MediaContainer(title2='Choose Movie section', noCache=True)
-    library = HTML.ElementFromURL(Get_PMS_URL()+'/library/sections', cacheTime=0)
-    movieSections = []
-    for section in library.xpath('//directory'):
-        if section.get('type') == 'movie':
-            movieSections.append({'title':section.get('title'), 'key':section.get('key')})
-    
-    if len(movieSections) > 1:
-        Log('There are %d sections which contain "movies"' % len(movieSections))
-        for section in movieSections:
-            dir.Append(Function(DirectoryItem(ForceMovieSection, title=section['title']), sectionID=section['key']))
-        return dir
-    elif len(movieSections) == 1:
-        Log('There is 1 section which contains movies.')
-        Dict['MovieSectionID'] = movieSections[0]['key']
-        Log('Movie sectionID saved.')
-        return MainMenu()
-    else:
-        return MessageContainer(NAME, L('Could not identify a section of Movies.'))
-
-    return MainMenu()
-    
-####################################################################################################
-
-def ForceMovieSection(sender, sectionID):
-    Log('Section #%s chosen' % sectionID)
-    Dict['MovieSectionID'] = sectionID
-    Log('Movie sectionID saved.')
-    return MainMenu()
-
-####################################################################################################
-
-def Get_PMS_URL():
-    return 'http://'+Prefs['pmsIP']+':32400'
-    
-####################################################################################################
