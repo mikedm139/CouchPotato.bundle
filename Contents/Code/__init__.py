@@ -291,7 +291,7 @@ def AddMovieMenu(id, year, url="", youtubeID=None, provider=""):
 
 ################################################################################
 
-def AddMovie(sender, id, year):
+def AddMovie(id, year):
     '''Tell CouchPotato to add the selected movie to the wanted list'''
     url = Get_CP_URL() + '/movie/'
     defaultQuality = HTML.ElementFromURL(url, headers=AuthHeader()).xpath('//form[@id="addNew"]/div/select/option')[0].get('value')
@@ -300,7 +300,7 @@ def AddMovie(sender, id, year):
     # tell CouchPotato to add the given movie
     moviedAdded = HTTP.Request(url+'imdbAdd/?id='+id+'&year='+year, post_values, headers=AuthHeader())
     
-    return MessageContainer("CouchPotato", L("Added to Wanted list."))
+    return ObjectContainer(header="CouchPotato", message=L("Added to Wanted list."), no_history=True)
 
 ################################################################################
 
