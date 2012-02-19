@@ -108,6 +108,7 @@ def WantedMenu():
         except: rating = 'No Rating'
         year = item.xpath('.//span[@class="year"]')[0].text
         dataID = item.xpath('.')[0].get('data-id')
+        title = title + ' (%s)' % year
         oc.add(PopupDirectoryObject(key=Callback(WantedList, dataID=dataID), title=title, year=year, summary=summary, thumb=Callback(GetThumb, url=thumb)))
     
     return oc
