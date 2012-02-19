@@ -540,17 +540,16 @@ def Get_CP_URL():
 def QualitySelectMenu(sender, id, year):
     '''provide an option to select a quality other than default before adding a movie'''
     
-    dir = MediaContainer()
+    oc = ObjectContainer()
     
     url = Get_CP_URL() + '/movie/'
     for quality in HTML.ElementFromURL(url, headers=AuthHeader()).xpath('//form[@id="addNew"]/div/select/option'):
         value = quality.get('value')
         name = quality.text
-        dir.Append(Function(DirectoryItem(AddWithQuality, title=name,
-            subtitle='Add movie with '+name+' quality', thumb=R(ICON)), id=id, year=year,
-            quality=value))
+        oc.add(DirectoryObject(key=Callback(AddWithQuality, id=id, year=year,
+            quality=value), title=name, summary='Add movie with '+name+' quality', thumb=R(ICON)))
     
-    return dir
+    return oc
 
 ################################################################################
 
