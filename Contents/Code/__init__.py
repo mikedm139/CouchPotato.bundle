@@ -59,7 +59,7 @@ def ValidatePrefs():
 
 def MainMenu():
     '''Populate main menu options'''
-    oc = ObjectContainer(view_group="InfoList", title="CouchPotato", noCache=True)
+    oc = ObjectContainer(view_group="InfoList", title="CouchPotato", no_cache=True)
 
     oc.add(DirectoryObject(key=Callback(MoviesMenu), title="Manage your movies list",
         summary="View and edit your CouchPotato wanted movies list",thumb=R(ICON)))
@@ -96,7 +96,7 @@ def MoviesMenu():
 def WantedMenu():
     '''Scrape wanted movies from CouchPotato and populate the list with results'''
     url = Get_CP_URL()  + '/movie/'
-    oc = ObjectContainer(view_group="InfoList", title2="Wanted", noCache=True)
+    oc = ObjectContainer(view_group="InfoList", title2="Wanted", no_cache=True)
     wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader(), cacheTime=0)
     
     for item in wantedPage.xpath('//div[@class="item want"]'):
@@ -118,7 +118,7 @@ def WaitingMenu():
     '''Scrape waiting movies from CouchPotato and populate the list with results.
         Note: waiting movies differ from wanted movies only by one tag'''
     url = Get_CP_URL() + '/movie/'
-    oc = ObjectContainer(view_group="InfoList", title2="Waiting", noCache=True)
+    oc = ObjectContainer(view_group="InfoList", title2="Waiting", no_cache=True)
     wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader(), cacheTime=0)
     
     for item in wantedPage.xpath('//div[@class="item waiting"]'):
@@ -139,7 +139,7 @@ def WaitingMenu():
 def SnatchedMenu():
     '''Scrape snatched movies from CouchPotato and populate the list with results'''
     url = Get_CP_URL() + '/movie/'
-    oc = ObjectContainer(view_group="InfoList", title2="Snatched", noCache=True)
+    oc = ObjectContainer(view_group="InfoList", title2="Snatched", no_cache=True)
     wantedPage = HTML.ElementFromURL(url, errors='ignore', cacheTime=0)
     thumb = R(SNATCHED_ICON)
     summary = 'This movie should now appear in your downloads queue.'
@@ -157,7 +157,7 @@ def SnatchedMenu():
 def DownloadedMenu():
     '''Scrape downloaded movies from CouchPotato and populate the list with results'''
     url = Get_CP_URL() + '/movie/'
-    oc = ObjectContainer(view_group="InfoList", title2="Downloaded", noCache=True)
+    oc = ObjectContainer(view_group="InfoList", title2="Downloaded", no_cache=True)
     wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader(), cacheTime=0)
     thumb = R(DL_ICON)
     summary = 'This movie should now be available in your Plex library.'
@@ -317,7 +317,7 @@ def AddMovie(id, year):
 #def ComingToTheatres(sender):
 #    '''Scrape themovieinsider.com for coming soon movies and populate a list'''
 #    url = 'http://www.themovieinsider.com/movies/coming-soon/'
-#    dir = MediaContainer(viewGroup="InfoList", title2="Coming Soon", noCache=True)
+#    dir = MediaContainer(viewGroup="InfoList", title2="Coming Soon", no_cache=True)
 #    comingSoonPage = HTML.ElementFromURL(url, errors='ignore')
 #    
 #    for comingMovie in comingSoonPage.xpath('//h3'):
@@ -356,7 +356,7 @@ def AddMovie(id, year):
 #def ComingToBluray(sender):
 #    '''Scrape themovieinsider.com for coming soon movies and populate a list'''
 #    url = 'http://www.themovieinsider.com/blu-rays/coming-soon/'
-#    dir = MediaContainer(viewGroup="InfoList", title2="Coming Soon", noCache=True)
+#    dir = MediaContainer(viewGroup="InfoList", title2="Coming Soon", no_cache=True)
 #    comingSoonPage = HTML.ElementFromURL(url, errors='ignore')
 #    
 #    for comingMovie in comingSoonPage.xpath('//h3'):
@@ -392,7 +392,7 @@ def AddMovie(id, year):
 #def NewReleases(sender):
 #    '''Scrape PopularNewReleases.com for recent BluRay releases'''
 #    url = 'http://popularnewreleases.com/index.php?sort=release-date'
-#    dir = MediaContainer(viewGroup="InfoList", title2="New Releases", noCache=True)
+#    dir = MediaContainer(viewGroup="InfoList", title2="New Releases", no_cache=True)
 #    newReleasePage = HTML.ElementFromURL(url, errors='ignore')
 #    
 #    for movie in newReleasePage.xpath('//table[@class="movie"]'):
@@ -434,7 +434,7 @@ def AddMovie(id, year):
 #        
 #    cookies = HTTP.GetCookiesForURL('http://www.youtube.com')
 #
-#    dir = MediaContainer(ViewGroup="InfoList", title2="Trailers", httpCookies=cookies, noCache=True)
+#    dir = MediaContainer(ViewGroup="InfoList", title2="Trailers", httpCookies=cookies, no_cache=True)
 #       
 #    if provider == "MovieInsider":
 #        for trailer in HTML.ElementFromURL(url).xpath('//div[@id="trailer"]/a'):
