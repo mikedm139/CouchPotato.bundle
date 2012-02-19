@@ -59,7 +59,7 @@ def ValidatePrefs():
 
 def MainMenu():
     '''Populate main menu options'''
-    oc = ObjectContainer(view_group="InfoList", title="CouchPotato", no_cache=True)
+    oc = ObjectContainer(view_group="InfoList", no_cache=True)
 
     oc.add(DirectoryObject(key=Callback(MoviesMenu), title="Manage your movies list",
         summary="View and edit your CouchPotato wanted movies list",thumb=R(ICON)))
