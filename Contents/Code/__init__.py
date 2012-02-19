@@ -553,7 +553,7 @@ def QualitySelectMenu(id, year):
 
 ################################################################################
 
-def AddWithQuality(sender, id, year, quality):   
+def AddWithQuality(id, year, quality):   
     '''tell CouchPotato to add the given movie with the given quality (rather than
         the defaultQuality)'''
     
@@ -563,4 +563,4 @@ def AddWithQuality(sender, id, year, quality):
     # tell CouchPotato to add the given movie
     moviedAdded = HTTP.Request(url+'imdbAdd/?id='+id+'&year='+year, post_values, headers=AuthHeader())
     
-    return MessageContainer("CouchPotato", L("Added to Wanted list."))
+    return ObjectContainer(header="CouchPotato", message=L("Added to Wanted list."), no_history=True)
