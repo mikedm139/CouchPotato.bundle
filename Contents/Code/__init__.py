@@ -537,7 +537,7 @@ def Get_CP_URL():
 
 ################################################################################
 
-def QualitySelectMenu(sender, id, year):
+def QualitySelectMenu(id, year):
     '''provide an option to select a quality other than default before adding a movie'''
     
     oc = ObjectContainer()
