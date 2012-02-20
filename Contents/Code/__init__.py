@@ -100,7 +100,8 @@ def WantedMenu():
     wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader(), cacheTime=0)
     
     for item in wantedPage.xpath('//div[@class="item want"]'):
-        thumb = Get_CP_URL() + item.xpath('.//img[@class="thumbnail"]')[0].get('src')
+        try: thumb = Get_CP_URL() + item.xpath('.//img[@class="thumbnail"]')[0].get('src')
+        except: thumb = ''
         title = item.xpath('./span/span/h2')[0].text
         try: summary = item.xpath('.//span[@class="overview"]')[0].text
         except: summary = 'No Overview'
@@ -123,7 +124,8 @@ def WaitingMenu():
     wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader(), cacheTime=0)
     
     for item in wantedPage.xpath('//div[@class="item waiting"]'):
-        thumb = Get_CP_URL() + item.xpath('.//img[@class="thumbnail"]')[0].get('src')
+        try: thumb = Get_CP_URL() + item.xpath('.//img[@class="thumbnail"]')[0].get('src')
+        except: thumb = ''
         title = item.xpath('./span/span/h2')[0].text
         try: summary = item.xpath('.//span[@class="overview"]')[0].text
         except: summary = 'No Overview'
@@ -131,7 +133,8 @@ def WaitingMenu():
         except: rating = 'No Rating'
         year = item.xpath('.//span[@class="year"]')[0].text
         dataID = item.xpath('.')[0].get('data-id')
-        oc.add(PopupDirectoryObject(key=Callback(WantedList, dataID=dataID), title=title, year=year, summary=summary, thumb=Callback(GetThumb, url=thumb)))
+        title = title + ' (%s)' % year
+        oc.add(PopupDirectoryObject(key=Callback(WantedList, dataID=dataID), title=title, summary=summary, thumb=Callback(GetThumb, url=thumb)))
     
     return oc
   
@@ -148,6 +151,7 @@ def SnatchedMenu():
     for item in wantedPage.xpath('//div[@id="snatched"]/span'):
         #Log('parsing movie item')
         title = item.text.replace('\n','').replace('\t','')
+        dataID = item.xpath('.//a[@class="reAdd"]')[0].get('data-id')
         #Log('Parsing ' + title)
         oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb=thumb))
     
@@ -471,20 +475,14 @@ def AddMovie(id, year):
 #    
 ################################################################################
 
-def GetThumb(url=None, link=None):
+def GetThumb(url=None):
     '''A function to return thumbs.'''
-    if link:
-        try: url = HTML.ElementFromURL(link,errors='ignore').xpath('//img[@id="poster"]')[0].get('src')
-        except: url = 'http://hwcdn.themoviedb.org/images/no-poster.jpg'
-    else:
-        pass
     try:
-        data = HTTP.Request(url, cacheTime=CACHE_1MONTH)
+        data = HTTP.Request(url, cacheTime=CACHE_1MONTH).content
         return DataObject(data, 'image/jpeg')
     except:
-        data = HTTP.Request('http://hwcdn.themoviedb.org/images/no-poster.jpg', cacheTime=CACHE_1MONTH)
-        return DataObject(data, 'image/jpeg')
-        
+        return Redirect(R("no_poster.jpg"))
+
 ################################################################################
 
 def UpdateAvailable():
