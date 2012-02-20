@@ -266,20 +266,13 @@ def SearchResults(query):
             try:
                 posterUrl = movie.xpath('.//image[@type="poster"]')[-1].get('url')
             except:
-                posterUrl = 'http://hwcdn.themoviedb.org/images/no-poster.jpg'
-            link = movie.find('url').text
-            #Log(link)
-            try:
-                trailerText = HTML.ElementFromURL(link).xpath('//p[@class="trailers"]')[0].text
-                if trailerText == "No ":
-                    link = ""
-            except:
-                link = ""    
+                posterUrl = ''
         
             if year != None:
-                Log(movieTitle + ' ('+year+') ' + ' found'),
+                title = "%s (%s)" % (movieTitle, year)
+                #Log(movieTitle + ' ('+year+') ' + ' found'),
                 oc.add(PopupDirectoryObject(key=Callback(AddMovieMenu, id=imdbID, year=year, url=link, provider="TMDB"),
-                        title=movieTitle, subtitle=year, summary=overview, thumb=Function(GetThumb, url=posterUrl)))
+                        title=movieTitle, summary=overview, thumb=Function(GetThumb, url=posterUrl)))
                 resultCount = resultCount+1
     return oc
     
@@ -563,3 +556,122 @@ def AddWithQuality(id, year, quality):
     moviedAdded = HTTP.Request(url+'imdbAdd/?id='+id+'&year='+year, post_values, headers=AuthHeader())
     
     return ObjectContainer(header="CouchPotato", message=L("Added to Wanted list."), no_history=True)
+    
+####################################################################################################
+####################################################################################################
+####################################################################################################
+
+API_KEY = 'bnant4epk25tfe8mkhgt4ezg'
+
+LIST_URL = 'http://api.rottentomatoes.com/api/public/v1.0/lists/%s.json?apikey=%s'
+
+####################################################################################################
+
+def Start():
+
+    Plugin.AddPrefixHandler(VIDEO_PREFIX, MainMenu, NAME, ICON, ART)
+
+    Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
+    Plugin.AddViewGroup("List", viewMode="List", mediaType="items")
+    
+    ObjectContainer.title1 = NAME
+    ObjectContainer.view_group = "List"
+    ObjectContainer.art = R(ART)
+    DirectoryObject.thumb = R(ICON)
+    
+    HTTP.CacheTime = CACHE_1HOUR
+
+def MainMenu():
+    oc = ObjectContainer()
+    oc.add(DirectoryObject(key=Callback(ListMenu, list_type="movies"), title="Theatres"))
+    oc.add(DirectoryObject(key=Callback(ListMenu, list_type="dvds"), title="DVD"))
+    return oc
+
+def ListMenu(list_type):
+    oc = ObjectContainer()
+    if list_type == "movies":
+        oc.title2="Theaters"
+    elif list_type == "dvds":
+        oc.title2 == "DVD"
+    
+    movieLists = JSON.ObjectFromURL(LIST_URL % (list_type, API_KEY))
+    for movie_list in movieLists['links']:
+        name = movie_list
+        title = string.capwords(name.replace('_', ' '))
+        url = movieLists['links'][name]
+        oc.add(DirectoryObject(key=Callback(MovieList, title=title, url=url), title=title, thumb=R(ICON)))
+    return oc
+  
+def MovieList(title, url=None):
+    oc = ObjectContainer(title2=title)
+    
+    movies = JSON.ObjectFromURL(url + '?apikey=%s' % API_KEY)
+    
+    for movie in movies['movies']:
+        title = "%s (%s)" % (movie['title'], movie['year'])
+        summary = BuildSummary(movie)
+        thumb=movie['posters']['original']
+        
+        oc.add(DirectoryObject(key=Callback(DetailsMenu, movie=movie), title=title, summary=summary, thumb=thumb))
+    return oc
+
+def DetailsMenu(movie):
+    oc = ObjectContainer(title2=movie['title'])
+    oc.add(DirectoryObject(key=Callback(ReviewsMenu, title=movie['title'], url=movie['links']['reviews']), title="Read Reviews"))
+    oc.add(DirectoryObject(key=Callback(TrailersMenu, title=movie['title'], url=movie['links']['clips']), title="Watch Trailers"))
+    oc.add(DirectoryObject(key=Callback(MovieList, title=movie['title'], url=movie['links']['similar']), title="Find Similar Movies"))    
+    return oc
+
+def ReviewsMenu(title, url):
+    oc = ObjectContainer(title1=title, title2="Reviews")
+    reviews = JSON.ObjectFromURL(url +'?apikey=%s' % API_KEY)['reviews']
+    for review in reviews:
+        title = "%s - %s" % (review['critic'], review['publication'])
+        try: score = review['original_score']
+        except: score = 'N/A'
+        summary = "Rating: %s\n\n%s" % (score, review['quote'])
+        oc.add(DirectoryObject(key=Callback(DoNothing), title=title, summary=summary, thumb=None))
+    return oc
+
+def TrailersMenu(title, url):
+    oc = ObjectContainer(title1=title, title2="Trailers")
+    trailers = JSON.ObjectFromURL(url +'?apikey=%s' % API_KEY)['clips']
+    for trailer in trailers:
+        Log(trailer)
+        title = trailer['title']
+        thumb = trailer['thumbnail']
+        duration = int(trailer['duration'])*1000
+        url = trailer['links']['alternate']
+        oc.add(VideoClipObject(url=url, title=title, duration=duration, thumb=thumb))
+    return oc
+
+def GetCast(cast):
+    actors = ''
+    for actor in cast:
+        name = actor['name']
+        try: role = actor['characters'][0]
+        except: role = ''
+        actors = actors + '%s - %s\n' % (name, role)
+    return actors
+
+def GetReleaseDates(movie):
+    try: theater = movie['release_dates']['theater']
+    except: theater = 'N/A'
+    try: dvd = movie['release_dates']['dvd']
+    except: dvd = 'N/A'
+    return "Theater: %s\nDVD: %s" % (theater, dvd)
+
+def BuildSummary(movie):
+    critic_rating = movie['ratings']['critics_score']
+    audience_rating = movie['ratings']['audience_score']
+    cast = GetCast(movie['abridged_cast'])
+    synopsis = movie['synopsis']
+    content_rating = movie['mpaa_rating']
+    runtime = movie['runtime']
+    release_dates = GetReleaseDates(movie)
+    summary = 'Runtime: %s minutes\nMPAA: %s\nCritic Rating: %s\nAudience Rating: %s\nRelease:\n%s\n\nSynopsis:\n%s\n\nCast:\n%s' % (runtime, content_rating, critic_rating, audience_rating, release_dates, synopsis, cast)
+    return summary
+
+def DoNothing():
+    ###Exactly like the function says###
+    return
