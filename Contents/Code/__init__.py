@@ -63,8 +63,8 @@ def MainMenu():
 
     oc.add(DirectoryObject(key=Callback(MoviesMenu), title="Manage your movies list",
         summary="View and edit your CouchPotato wanted movies list",thumb=R(ICON)))
-    #oc.add(DirectoryObject(key=Callback(ComingSoonMenu), title="Coming Soon",
-    #    summary="Browse upcoming movies and add them to your wanted list",thumb=R(ICON)))
+    oc.add(DirectoryObject(key=Callback(ComingSoonMenu), title="Coming Soon",
+        summary="Browse upcoming movies and add them to your wanted list", thumb=R("RT-icon.png")))
     oc.add(InputDirectoryObject(key=Callback(SearchResults), title="Search for Movies",
         summary="Find movies to add to your wanted list",thumb=R(SEARCH_ICON)))
     oc.add(PrefsObject(title="Preferences", summary="Set prefs to allow plugin to connect to CouchPotato app",thumb=R(PREFS_ICON)))
@@ -567,24 +567,10 @@ LIST_URL = 'http://api.rottentomatoes.com/api/public/v1.0/lists/%s.json?apikey=%
 
 ####################################################################################################
 
-def Start():
-
-    Plugin.AddPrefixHandler(VIDEO_PREFIX, MainMenu, NAME, ICON, ART)
-
-    Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
-    Plugin.AddViewGroup("List", viewMode="List", mediaType="items")
-    
-    ObjectContainer.title1 = NAME
-    ObjectContainer.view_group = "List"
-    ObjectContainer.art = R(ART)
-    DirectoryObject.thumb = R(ICON)
-    
-    HTTP.CacheTime = CACHE_1HOUR
-
-def MainMenu():
+def ComingSoonMenu():
     oc = ObjectContainer()
-    oc.add(DirectoryObject(key=Callback(ListMenu, list_type="movies"), title="Theatres"))
-    oc.add(DirectoryObject(key=Callback(ListMenu, list_type="dvds"), title="DVD"))
+    oc.add(DirectoryObject(key=Callback(ListMenu, list_type="movies"), title="Theatres", thumb=R("RT-icon.png")))
+    oc.add(DirectoryObject(key=Callback(ListMenu, list_type="dvds"), title="DVD", thumb=R("RT-icon.png")))
     return oc
 
 def ListMenu(list_type):
