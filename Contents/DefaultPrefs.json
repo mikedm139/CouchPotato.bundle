@@ -4,7 +4,7 @@
                 "id":           "cpUser",
                 "label":        "Username",
                 "type":         "text",
-                "default":      "",
+                "default":      ""
         },
 
         {
@@ -12,21 +12,21 @@
                 "label":        "Password",
                 "type":         "text",
                 "option":       "hidden",
-                "default":      "",
+                "default":      ""
         },
 
         {
                 "id":           "cpIP",
                 "label":        "CouchPotato IP",
                 "type":         "text",
-                "default":      "0.0.0.0",
+                "default":      "0.0.0.0"
         },
         
         {
                 "id":           "cpPort",
                 "label":        "CouchPotato Port",
                 "type":         "text",
-                "default":      "5000",
+                "default":      "5000"
         },
         
         {
