@@ -7,7 +7,7 @@ from base64 import b64encode
 ##  
 ###################################################################################################
 
-APPLICATIONS_PREFIX = "/applications/couchpotato"
+APPLICATIONS_PREFIX = "/video/couchpotato"
 
 NAME = L('CouchPotato')
 
@@ -65,8 +65,8 @@ def MainMenu():
         summary="View and edit your CouchPotato wanted movies list",thumb=R(ICON)))
     oc.add(DirectoryObject(key=Callback(ComingSoonMenu), title="Coming Soon",
         summary="Browse upcoming movies and add them to your wanted list", thumb=R("RT-icon.png")))
-    oc.add(InputDirectoryObject(key=Callback(SearchResults), title="Search for Movies",
-        summary="Find movies to add to your wanted list",thumb=R(SEARCH_ICON)))
+    oc.add(InputDirectoryObject(key=Callback(Search), title="Search for Movies",
+        summary="Find movies to add to your wanted list", prompt="Search for", thumb=R(SEARCH_ICON),))
     oc.add(PrefsObject(title="Preferences", summary="Set prefs to allow plugin to connect to CouchPotato app",thumb=R(PREFS_ICON)))
     if UpdateAvailable():
         Log('Update available')
@@ -241,7 +241,7 @@ def FailedFindNew(dataID):
 
 ################################################################################
 
-def SearchResults(query):
+def Search(query):
     '''Search themoviedb.org for movies using user input, and populate a list with the results'''
     oc = ObjectContainer(title2="Search Results", view_group="InfoList")
     #Log('Search term(s): ' + query)
@@ -300,16 +300,6 @@ def AddMovie(id, year):
     
     return ObjectContainer(header="CouchPotato", message=L("Added to Wanted list."), no_history=True)
 
-################################################################################
-#
-#def ComingSoonMenu(sender):
-#    dir = MediaContainer(title2="Coming Soon")
-#    dir.Append(Function(DirectoryItem(ComingToTheatres, title="Coming to Theatres", thumb=R(THEATRE_ICON))))
-#    dir.Append(Function(DirectoryItem(ComingToBluray, title="Coming to Bluray", thumb=R(BD_ICON))))
-#    dir.Append(Function(DirectoryItem(NewReleases,"New on DVD/BluRay", thumb=R(ICON))))
-#    
-#    return dir
-#
 ################################################################################
 #
 #def ComingToTheatres(sender):
@@ -426,47 +416,6 @@ def AddMovie(id, year):
 #    return dir
 #
 ################################################################################
-#
-#def TrailerMenu(sender, url="", youtubeID=None, provider=""):
-#    '''Display a list of WebVideoItem trailers for the selected movie (coming soon menu and *maybe search menu)'''
-#        
-#    cookies = HTTP.GetCookiesForURL('http://www.youtube.com')
-#
-#    dir = MediaContainer(ViewGroup="InfoList", title2="Trailers", httpCookies=cookies, no_cache=True)
-#       
-#    if provider == "MovieInsider":
-#        for trailer in HTML.ElementFromURL(url).xpath('//div[@id="trailer"]/a'):
-#            trailerID = str(trailer.xpath('div')[0].get('style'))[44:-14]
-#            trailerThumb = str(trailer.xpath('div')[0].get('style'))[21:-2]
-#            trailerTitle = trailer.xpath('div/p/ins[@class="icon play"]/parent::p/text()')[0]
-#            #Log(trailerTitle)
-#            dir.Append(Function(WebVideoItem(YtPlayVideo,
-#                    title=trailerTitle,
-#                    thumb=trailerThumb),
-#                video_id=trailerID))
-#    
-#    elif provider == "TMDB":
-#        for trailer in HTML.ElementFromURL(url).xpath('//p[@class="trailers"]/a'):
-#            trailerID = str(trailer.get('href'))[31:-5]
-#            #Log('TrailerID: '+trailerID)
-#            thumbUrl = 'http://i2.ytimg.com/vi/'+trailerID+'/default.jpg'
-#            trailerTitle = trailer.text
-#            #Log(trailerTitle)
-#            dir.Append(Function(WebVideoItem(YtPlayVideo,
-#                    title=trailerTitle,
-#                    thumb=Function(GetThumb, url=thumbUrl)),
-#                video_id=trailerID))
-#            
-#    elif provider == "PopularNewReleases":
-#        thumbUrl = 'http://i2.ytimg.com/vi/%s/default.jpg' % youtubeID
-#        dir.Append(Function(WebVideoItem(YtPlayVideo, title='Trailer',
-#            thumb=Function(GetThumb, url=thumbUrl)), video_id=youtubeID))
-#
-#    else: pass
-#    
-#    return dir
-#    
-################################################################################
 
 def GetThumb(url=None):
     '''A function to return thumbs.'''
@@ -561,56 +510,60 @@ def AddWithQuality(id, year, quality):
 ####################################################################################################
 ####################################################################################################
 
-API_KEY = 'bnant4epk25tfe8mkhgt4ezg'
 
-LIST_URL = 'http://api.rottentomatoes.com/api/public/v1.0/lists/%s.json?apikey=%s'
+RT_API_KEY = 'bnant4epk25tfe8mkhgt4ezg'
+
+RT_LIST_URL = 'http://api.rottentomatoes.com/api/public/v1.0/lists/%s.json?apikey=%s'
 
 ####################################################################################################
 
 def ComingSoonMenu():
-    oc = ObjectContainer()
-    oc.add(DirectoryObject(key=Callback(ListMenu, list_type="movies"), title="Theatres", thumb=R("RT-icon.png")))
-    oc.add(DirectoryObject(key=Callback(ListMenu, list_type="dvds"), title="DVD", thumb=R("RT-icon.png")))
+    oc = ObjectContainer(title2="Coming Soon")
+    oc.add(DirectoryObject(key=Callback(ComingMoviesListMenu, list_type="movies"), title="Theatres", thumb=R("RT-icon.png")))
+    oc.add(DirectoryObject(key=Callback(ComingMoviesListMenu, list_type="dvds"), title="DVD", thumb=R("RT-icon.png")))
     return oc
 
-def ListMenu(list_type):
+def ComingMoviesListMenu(list_type):
     oc = ObjectContainer()
     if list_type == "movies":
         oc.title2="Theaters"
     elif list_type == "dvds":
         oc.title2 == "DVD"
     
-    movieLists = JSON.ObjectFromURL(LIST_URL % (list_type, API_KEY))
+    movieLists = JSON.ObjectFromURL(RT_LIST_URL % (list_type, RT_API_KEY))
     for movie_list in movieLists['links']:
         name = movie_list
-        title = string.capwords(name.replace('_', ' '))
+        title = String.CapitalizeWords(name.replace('_', ' '))
         url = movieLists['links'][name]
-        oc.add(DirectoryObject(key=Callback(MovieList, title=title, url=url), title=title, thumb=R(ICON)))
+        oc.add(DirectoryObject(key=Callback(ComingMoviesList, title=title, url=url), title=title, thumb=R(ICON)))
     return oc
   
-def MovieList(title, url=None):
+def ComingMoviesList(title, url=None):
     oc = ObjectContainer(title2=title)
     
-    movies = JSON.ObjectFromURL(url + '?apikey=%s' % API_KEY)
+    movies = JSON.ObjectFromURL(url + '?apikey=%s' % RT_API_KEY)
     
     for movie in movies['movies']:
         title = "%s (%s)" % (movie['title'], movie['year'])
         summary = BuildSummary(movie)
-        thumb=movie['posters']['original']
+        thumb= movie['posters']['original']
         
-        oc.add(DirectoryObject(key=Callback(DetailsMenu, movie=movie), title=title, summary=summary, thumb=thumb))
+        oc.add(PopupDirectoryObject(key=Callback(DetailsMenu, movie=movie), title=title, summary=summary, thumb=thumb))
     return oc
 
 def DetailsMenu(movie):
     oc = ObjectContainer(title2=movie['title'])
-    oc.add(DirectoryObject(key=Callback(ReviewsMenu, title=movie['title'], url=movie['links']['reviews']), title="Read Reviews"))
-    oc.add(DirectoryObject(key=Callback(TrailersMenu, title=movie['title'], url=movie['links']['clips']), title="Watch Trailers"))
-    oc.add(DirectoryObject(key=Callback(MovieList, title=movie['title'], url=movie['links']['similar']), title="Find Similar Movies"))    
+    thumb = movie['posters']['original']
+    oc.add(DirectoryObject(key=Callback(AddMovie, id=movie['alternate_ids']['imdb'], year=str(movie['year'])), title='Add to Wanted list', thumb=thumb))
+    oc.add(DirectoryObject(key=Callback(QualitySelectMenu, id=movie['alternate_ids']['imdb'], year=str(movie['year'])), title='Select quality to add', thumb=thumb))
+    oc.add(DirectoryObject(key=Callback(ReviewsMenu, title=movie['title'], url=movie['links']['reviews']), title="Read Reviews", thumb=thumb))
+    oc.add(DirectoryObject(key=Callback(TrailersMenu, title=movie['title'], url=movie['links']['clips']), title="Watch Trailers", thumb=thumb))
+    oc.add(DirectoryObject(key=Callback(ComingMoviesList, title=movie['title'], url=movie['links']['similar']), title="Find Similar Movies", thumb=thumb))
     return oc
 
 def ReviewsMenu(title, url):
     oc = ObjectContainer(title1=title, title2="Reviews")
-    reviews = JSON.ObjectFromURL(url +'?apikey=%s' % API_KEY)['reviews']
+    reviews = JSON.ObjectFromURL(url +'?apikey=%s' % RT_API_KEY)['reviews']
     for review in reviews:
         title = "%s - %s" % (review['critic'], review['publication'])
         try: score = review['original_score']
@@ -621,9 +574,9 @@ def ReviewsMenu(title, url):
 
 def TrailersMenu(title, url):
     oc = ObjectContainer(title1=title, title2="Trailers")
-    trailers = JSON.ObjectFromURL(url +'?apikey=%s' % API_KEY)['clips']
+    trailers = JSON.ObjectFromURL(url +'?apikey=%s' % RT_API_KEY)['clips']
     for trailer in trailers:
-        Log(trailer)
+        #Log(trailer)
         title = trailer['title']
         thumb = trailer['thumbnail']
         duration = int(trailer['duration'])*1000
@@ -649,6 +602,8 @@ def GetReleaseDates(movie):
 
 def BuildSummary(movie):
     critic_rating = movie['ratings']['critics_score']
+    if critic_rating == -1:
+        critic_rating = "None"
     audience_rating = movie['ratings']['audience_score']
     cast = GetCast(movie['abridged_cast'])
     synopsis = movie['synopsis']
@@ -661,3 +616,4 @@ def BuildSummary(movie):
 def DoNothing():
     ###Exactly like the function says###
     return
+
