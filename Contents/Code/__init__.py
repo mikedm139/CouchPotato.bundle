@@ -210,7 +210,7 @@ def RemoveMovie(dataID):
     url = Get_CP_URL() + '/movie/delete/?id=' + dataID
     #Log('DeleteMovie url: ' + url)
     result = HTTP.Request(url, headers=AuthHeader()).content
-    return ObjectContainer(header="CouchPotato", meddage=L('Deleting from wanted list'), no_history=True)
+    return ObjectContainer(header="CouchPotato", message=L('Deleting from wanted list'), no_history=True)
 
 ################################################################################
 
@@ -258,7 +258,9 @@ def Search(query):
             imdbID = movie.find('imdb_id').text
             releaseDate = movie.find('released').text
             if releaseDate != '1900-01-01':
-                try: year = str(Datetime.ParseDate(releaseDate).year)
+                try:
+                    year = str(Datetime.ParseDate(releaseDate).year)
+                    movieTitle = "%s (%s)" % (movieTitle, year)
                 except: year = None
             else:
                 year = None
@@ -271,8 +273,8 @@ def Search(query):
             if year != None:
                 title = "%s (%s)" % (movieTitle, year)
                 #Log(movieTitle + ' ('+year+') ' + ' found'),
-                oc.add(PopupDirectoryObject(key=Callback(AddMovieMenu, id=imdbID, year=year, url=link, provider="TMDB"),
-                        title=movieTitle, summary=overview, thumb=Function(GetThumb, url=posterUrl)))
+                oc.add(PopupDirectoryObject(key=Callback(AddMovieMenu, id=imdbID, year=year, provider="TMDB"),
+                        title=movieTitle, summary=overview, thumb=Callback(GetThumb, url=posterUrl)))
                 resultCount = resultCount+1
     return oc
     
@@ -283,8 +285,6 @@ def AddMovieMenu(id, year, url="", youtubeID=None, provider=""):
     oc = ObjectContainer()
     oc.add(DirectoryObject(key=Callback(AddMovie, id=id, year=year), title='Add to Wanted list'))
     oc.add(DirectoryObject(key=Callback(QualitySelectMenu, id=id, year=year), title='Select quality to add'))
-    #if url != "":
-    #    oc.add(DirectoryObject(key=Callback(TrailerMenu, url=url, provider=provider), title='Watch A Trailer'))
     return oc
 
 ################################################################################
@@ -300,121 +300,6 @@ def AddMovie(id, year):
     
     return ObjectContainer(header="CouchPotato", message=L("Added to Wanted list."), no_history=True)
 
-################################################################################
-#
-#def ComingToTheatres(sender):
-#    '''Scrape themovieinsider.com for coming soon movies and populate a list'''
-#    url = 'http://www.themovieinsider.com/movies/coming-soon/'
-#    dir = MediaContainer(viewGroup="InfoList", title2="Coming Soon", no_cache=True)
-#    comingSoonPage = HTML.ElementFromURL(url, errors='ignore')
-#    
-#    for comingMovie in comingSoonPage.xpath('//h3'):
-#        link = comingMovie.xpath('./a')[0].get('href')
-#        movieName = comingMovie.xpath('./a')[0].text
-#        movieInfoPage = HTML.ElementFromURL(link, errors='ignore')
-#        try:
-#            movieTagLine = movieInfoPage.xpath('//p[@id="tagline"]')[0].text
-#            Log(movieTagLine)
-#        except:
-#            movieTagLine = ''
-#        movieYear = movieInfoPage.xpath('//table[@id="profileData"]/tr/td/a')[1].text
-#        Log(movieYear)
-#        try:
-#            movieOverview = movieInfoPage.xpath('//div[@id="synopsis"]/text()')[0]
-#            Log(movieOverview)
-#        except:
-#            movieOverview = ''
-#        try:
-#            imdbLink = movieInfoPage.xpath('//div[@id="relatedLinks"]/ul/li/a')[0].get('href')
-#            imdbID = str(imdbLink)[26:-1]
-#            Log(imdbID)
-#        except:
-#            continue
-#        dir.Append(Function(PopupDirectoryItem(AddMovieMenu,
-#                title=(movieName+' ('+movieYear+')'),
-#                subtitle=movieTagLine,
-#                summary = movieOverview,
-#                thumb = Function(GetThumb, link=link)),
-#            id=imdbID, year=movieYear, url=link, provider="MovieInsider"))
-#        
-#    return dir
-#
-################################################################################
-#
-#def ComingToBluray(sender):
-#    '''Scrape themovieinsider.com for coming soon movies and populate a list'''
-#    url = 'http://www.themovieinsider.com/blu-rays/coming-soon/'
-#    dir = MediaContainer(viewGroup="InfoList", title2="Coming Soon", no_cache=True)
-#    comingSoonPage = HTML.ElementFromURL(url, errors='ignore')
-#    
-#    for comingMovie in comingSoonPage.xpath('//h3'):
-#        link = comingMovie.xpath('./a')[0].get('href')
-#        movieName = comingMovie.xpath('./a')[0].text
-#        movieInfoPage = HTML.ElementFromURL(link,errors='ignore')
-#        try:
-#            movieTagLine = movieInfoPage.xpath('//p[@id="tagline"]')[0].text
-#            Log(movieTagLine)
-#        except:
-#            movieTagLine = ''
-#        movieYear = movieInfoPage.xpath('//table[@id="profileData"]/tr/td/a')[1].text
-#        try:
-#            movieOverview = movieInfoPage.xpath('//div[@id="synopsis"]/text()')[0]
-#        except:
-#            movieOverview = ""
-#        try:
-#            imdbLink = movieInfoPage.xpath('//div[@id="relatedLinks"]/ul/li/a')[0].get('href')
-#            imdbID = str(imdbLink)[26:-1]
-#        except:
-#            continue
-#        dir.Append(Function(PopupDirectoryItem(AddMovieMenu,
-#                title=(movieName+' ('+movieYear+')'),
-#                subtitle=movieTagLine,
-#                summary = movieOverview,
-#                thumb = Function(GetThumb, link=link)),
-#            id=imdbID, year=movieYear, url=link, provider="MovieInsider"))
-#        
-#    return dir
-#
-################################################################################
-#
-#def NewReleases(sender):
-#    '''Scrape PopularNewReleases.com for recent BluRay releases'''
-#    url = 'http://popularnewreleases.com/index.php?sort=release-date'
-#    dir = MediaContainer(viewGroup="InfoList", title2="New Releases", no_cache=True)
-#    newReleasePage = HTML.ElementFromURL(url, errors='ignore')
-#    
-#    for movie in newReleasePage.xpath('//table[@class="movie"]'):
-#        movieTitle = movie.xpath('.//h1[@class="title"]/a')[0].text
-#        Log('Found - New Release: '+movieTitle)
-#        try: posterUrl = movie.xpath('.//img[@class="movieart"]')[0].get('src')
-#        except: posterUrl = 'http://hwcdn.themoviedb.org/images/no-poster.jpg'
-#        try:
-#            youtubetrailer=movie.xpath('.//a[@class="trailer-link internal-action-link"]')[0].get('youtubeid')
-#        except:
-#            youtubetrailer=None
-#        Log('YouTubeID: '+str(youtubetrailer))
-#        try:
-#            BDReleaseDate = movie.xpath('.//td[@class="on-video"]')[0].text
-#        except:
-#            BDReleaseDate = ""    
-#        movieYear = movie.xpath('.//span[@class="theatrical-release-year"]')[0].text.split('(')[1].split(')')[0]
-#        Log('Release year: '+movieYear)
-#        try:
-#            movieOverview = movie.xpath('.//p[@class="synopsis"]')[0].text
-#        except:
-#            movieOverview = ""
-#        imdbID = movie.xpath('.//a[@class="external-action-link"]')[0].get('href').split('title/tt')[1]
-#            
-#        Log('imdbID: ' + imdbID)
-#        dir.Append(Function(PopupDirectoryItem(AddMovieMenu,
-#                title=(movieTitle+' ('+movieYear+')'),
-#                subtitle=('Release: '+BDReleaseDate),
-#                summary = movieOverview,
-#                thumb = Function(GetThumb, url=posterUrl)),
-#            id=imdbID, year=movieYear, youtubeID=youtubetrailer, provider="MovieInsider"))
-#        
-#    return dir
-#
 ################################################################################
 
 def GetThumb(url=None):
@@ -539,7 +424,7 @@ def ComingMoviesListMenu(list_type):
     return oc
   
 def ComingMoviesList(title, url=None):
-    oc = ObjectContainer(title2=title)
+    oc = ObjectContainer(title2=title, view_group="InfoList")
     
     movies = JSON.ObjectFromURL(url + '?apikey=%s' % RT_API_KEY)
     
@@ -562,7 +447,7 @@ def DetailsMenu(movie):
     return oc
 
 def ReviewsMenu(title, url):
-    oc = ObjectContainer(title1=title, title2="Reviews")
+    oc = ObjectContainer(title1=title, title2="Reviews", view_group="InfoList")
     reviews = JSON.ObjectFromURL(url +'?apikey=%s' % RT_API_KEY)['reviews']
     for review in reviews:
         title = "%s - %s" % (review['critic'], review['publication'])
@@ -573,7 +458,7 @@ def ReviewsMenu(title, url):
     return oc
 
 def TrailersMenu(title, url):
-    oc = ObjectContainer(title1=title, title2="Trailers")
+    oc = ObjectContainer(title1=title, title2="Trailers", view_group="InfoList")
     trailers = JSON.ObjectFromURL(url +'?apikey=%s' % RT_API_KEY)['clips']
     for trailer in trailers:
         #Log(trailer)
