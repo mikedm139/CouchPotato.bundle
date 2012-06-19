@@ -153,7 +153,7 @@ def SnatchedMenu():
         title = item.text.replace('\n','').replace('\t','')
         dataID = item.xpath('.//a[@class="reAdd"]')[0].get('data-id')
         #Log('Parsing ' + title)
-        oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb=thumb))
+        oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallbcak='no_poster.jpg')))
     
     return oc
   
@@ -171,7 +171,7 @@ def DownloadedMenu():
         title = item.text.replace('\n','').replace('\t','')
         #Log('Parsing ' + title)
         dataID = item.xpath('./a')[1].get('data-id')
-        oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb=thumb))
+        oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallbcak='no_poster.jpg')))
     
     return oc
   
@@ -302,16 +302,6 @@ def AddMovie(id, year):
 
 ################################################################################
 
-def GetThumb(url=None):
-    '''A function to return thumbs.'''
-    try:
-        data = HTTP.Request(url, cacheTime=CACHE_1MONTH).content
-        return DataObject(data, 'image/jpeg')
-    except:
-        return Redirect(R("no_poster.jpg"))
-
-################################################################################
-
 def UpdateAvailable():
     '''Check for updates to CouchPotato using the update flag on the webUI'''
     Log('Running function "UpdateAvailable()"')
@@ -336,13 +326,13 @@ def UpdateAvailable():
     
 ################################################################################
 
-def UpdateMenu(sender):
+def UpdateMenu():
     '''Display the CouchPotato Updater popup menu'''
     
-    dir = MediaContainer()
-    dir.Append(Function(PopupDirectoryItem(UpdateNow, title='Update CouchPotato Now')))
+    oc = ObjectContainer()
+    oc.add(PopupDirectoryObject(key=Callback(UpdateNow), title='Update CouchPotato Now'))
     
-    return dir
+    return oc
 
 ################################################################################
 
@@ -354,7 +344,7 @@ def UpdateNow(sender):
     except:
         pass
     time.sleep(10)
-    return MessageContainer('CouchPotato', L('Update completed successfully'))
+    return ObjectContainer(header='CouchPotato', message=L('Update completed successfully'))
 
 ################################################################################
 
@@ -433,17 +423,17 @@ def ComingMoviesList(title, url=None):
         summary = BuildSummary(movie)
         thumb= movie['posters']['original']
         
-        oc.add(PopupDirectoryObject(key=Callback(DetailsMenu, movie=movie), title=title, summary=summary, thumb=thumb))
+        oc.add(PopupDirectoryObject(key=Callback(DetailsMenu, movie=movie), title=title, summary=summary, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallbcak='no_poster.jpg')))
     return oc
 
 def DetailsMenu(movie):
     oc = ObjectContainer(title2=movie['title'])
     thumb = movie['posters']['original']
-    oc.add(DirectoryObject(key=Callback(AddMovie, id=movie['alternate_ids']['imdb'], year=str(movie['year'])), title='Add to Wanted list', thumb=thumb))
-    oc.add(DirectoryObject(key=Callback(QualitySelectMenu, id=movie['alternate_ids']['imdb'], year=str(movie['year'])), title='Select quality to add', thumb=thumb))
-    oc.add(DirectoryObject(key=Callback(ReviewsMenu, title=movie['title'], url=movie['links']['reviews']), title="Read Reviews", thumb=thumb))
-    oc.add(DirectoryObject(key=Callback(TrailersMenu, title=movie['title'], url=movie['links']['clips']), title="Watch Trailers", thumb=thumb))
-    oc.add(DirectoryObject(key=Callback(ComingMoviesList, title=movie['title'], url=movie['links']['similar']), title="Find Similar Movies", thumb=thumb))
+    oc.add(DirectoryObject(key=Callback(AddMovie, id=movie['alternate_ids']['imdb'], year=str(movie['year'])), title='Add to Wanted list', thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallbcak='no_poster.jpg')))
+    oc.add(DirectoryObject(key=Callback(QualitySelectMenu, id=movie['alternate_ids']['imdb'], year=str(movie['year'])), title='Select quality to add', thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallbcak='no_poster.jpg')))
+    oc.add(DirectoryObject(key=Callback(ReviewsMenu, title=movie['title'], url=movie['links']['reviews']), title="Read Reviews", thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallbcak='no_poster.jpg')))
+    oc.add(DirectoryObject(key=Callback(TrailersMenu, title=movie['title'], url=movie['links']['clips']), title="Watch Trailers", thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallbcak='no_poster.jpg')))
+    oc.add(DirectoryObject(key=Callback(ComingMoviesList, title=movie['title'], url=movie['links']['similar']), title="Find Similar Movies", thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallbcak='no_poster.jpg')))
     return oc
 
 def ReviewsMenu(title, url):
@@ -466,7 +456,7 @@ def TrailersMenu(title, url):
         thumb = trailer['thumbnail']
         duration = int(trailer['duration'])*1000
         url = trailer['links']['alternate']
-        oc.add(VideoClipObject(url=url, title=title, duration=duration, thumb=thumb))
+        oc.add(VideoClipObject(url=url, title=title, duration=duration, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallbcak='no_poster.jpg')))
     return oc
 
 def GetCast(cast):
