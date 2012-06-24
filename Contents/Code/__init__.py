@@ -24,11 +24,7 @@ BD_ICON       = 'BD_icon.jpg'
 ####################################################################################################
 
 def Start():
-    '''Setup plugin for use'''
-    if Dict['MovieSectionID'] == None:
-        Plugin.AddPrefixHandler(APPLICATIONS_PREFIX, GetMovieSectionID, NAME, ICON, ART)
-    else:
-        Plugin.AddPrefixHandler(APPLICATIONS_PREFIX, MainMenu, NAME, ICON, ART)
+    Plugin.AddPrefixHandler(APPLICATIONS_PREFIX, MainMenu, NAME, ICON, ART)
     
     Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
     Plugin.AddViewGroup("List", viewMode="List", mediaType="items")
