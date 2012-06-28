@@ -159,7 +159,7 @@ def DownloadedMenu():
     '''Scrape downloaded movies from CouchPotato and populate the list with results'''
     url = Get_CP_URL() + '/movie/'
     oc = ObjectContainer(view_group="InfoList", title2="Downloaded", no_cache=True)
-    wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader(), cacheTime=0)
+    wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader(), cache_time=0)
     thumb = R(DL_ICON)
     summary = 'This movie should now be available in your Plex library.'
     
@@ -270,7 +270,7 @@ def Search(query):
                 title = "%s (%s)" % (movieTitle, year)
                 #Log(movieTitle + ' ('+year+') ' + ' found'),
                 oc.add(PopupDirectoryObject(key=Callback(AddMovieMenu, id=imdbID, year=year, provider="TMDB"),
-                        title=movieTitle, summary=overview, thumb=Callback(GetThumb, url=posterUrl)))
+                        title=movieTitle, summary=overview, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
                 resultCount = resultCount+1
     return oc
     
