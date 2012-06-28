@@ -106,7 +106,7 @@ def WantedMenu():
         year = item.xpath('.//span[@class="year"]')[0].text
         dataID = item.xpath('.')[0].get('data-id')
         title = title + ' (%s)' % year
-        oc.add(PopupDirectoryObject(key=Callback(WantedList, dataID=dataID), title=title, summary=summary, thumb=Callback(GetThumb, url=thumb)))
+        oc.add(PopupDirectoryObject(key=Callback(WantedList, dataID=dataID), title=title, summary=summary, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
     
     return oc
   
@@ -130,7 +130,7 @@ def WaitingMenu():
         year = item.xpath('.//span[@class="year"]')[0].text
         dataID = item.xpath('.')[0].get('data-id')
         title = title + ' (%s)' % year
-        oc.add(PopupDirectoryObject(key=Callback(WantedList, dataID=dataID), title=title, summary=summary, thumb=Callback(GetThumb, url=thumb)))
+        oc.add(PopupDirectoryObject(key=Callback(WantedList, dataID=dataID), title=title, summary=summary, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
     
     return oc
   
