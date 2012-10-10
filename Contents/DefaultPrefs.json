@@ -1,6 +1,13 @@
 [
 
         {
+                "id":           "cpApiMode",
+                "label":        "Use Couch Potato v2 API (Required for Couch Potato v2)",
+                "type":         "bool",
+                "default":      "false",
+        },
+
+        {
                 "id":           "cpUser",
                 "label":        "Username",
                 "type":         "text",
