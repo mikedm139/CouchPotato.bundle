@@ -34,20 +34,5 @@
                 "label":        "CouchPotato Port",
                 "type":         "text",
                 "default":      "5000"
-        },
-        
-        {
-                "id":           "ytfmt",
-                "type":         "enum",
-                "label":        "Max. quality of YouTube Trailer videos (if available)",
-                "values":       ["Standard", "Medium", "High", "720p", "1080p"],
-                "default":      "1080p"
-        },
-        
-        {
-                "id":           "pmsIP",
-                "type":         "text",
-                "label":        "PMS IP",
-                "default":      "localhost"
         }
 ]
