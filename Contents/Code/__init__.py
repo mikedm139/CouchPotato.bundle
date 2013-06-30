@@ -526,13 +526,15 @@ def CP_API_CALL(command, apiParm={}, apiFile='', apiCache=False):
 
 def GetPosterFromFileList(fileList,posterDefault):
     poster = posterDefault
+    Log(fileList)
     for item in fileList:
+        Log(item)
         Log.Debug('Testing: '+item['path'])
-        if item['type_id'] == 2:
-            #Log.Debug('Parsing: '+item['path'])
-            pathList = re.split('(\\\\|\/)', item['path'])
-            poster = CP_API_URL('file.cache',{},str(pathList[-1]),True) 
-            break
+        #if item['type_id'] == 2: ''' not sure what the reason for this if statement was. Seems to work better without it. '''
+        #Log.Debug('Parsing: '+item['path'])
+        pathList = re.split('(\\\\|\/)', item['path'])
+        poster = CP_API_URL('file.cache',{},str(pathList[-1]),True) 
+        break
     #Log.Debug("Found Poster: "+poster)
     return poster
 
