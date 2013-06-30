@@ -8,6 +8,13 @@
         },
 
         {
+                "id":           "https",
+                "label":        "use SSL encryption (HTTPS)",
+                "type":         "bool",
+                "default":      "false",
+        },
+
+        {
                 "id":           "cpUser",
                 "label":        "Username",
                 "type":         "text",

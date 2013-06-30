@@ -475,7 +475,10 @@ def UpdateNow():
 ################################################################################
 @route('%s/cpurl' % PREFIX)
 def Get_CP_URL():
-  return 'http://'+Prefs['cpIP']+':'+Prefs['cpPort']
+    if Prefs['https']:
+        return 'https://'+Prefs['cpIP']+':'+Prefs['cpPort']
+    else:
+        return 'http://'+Prefs['cpIP']+':'+Prefs['cpPort']
   
 ################################################################################
 @route('%s/apikey' % PREFIX)
