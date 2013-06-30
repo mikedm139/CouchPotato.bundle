@@ -17,7 +17,6 @@ BD_ICON       = 'BD_icon.jpg'
 ####################################################################################################
 
 def Start():
-    Plugin.AddPrefixHandler(PREFIX, MainMenu, NAME, ICON, ART)
     
     Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
     Plugin.AddViewGroup("List", viewMode="List", mediaType="items")
@@ -45,7 +44,7 @@ def ValidatePrefs():
     return
 
 ####################################################################################################
-
+@handler(PREFIX, NAME, ICON, ART)
 def MainMenu():
     '''Populate main menu options'''
     oc = ObjectContainer(view_group="InfoList", no_cache=True)
