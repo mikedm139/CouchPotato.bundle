@@ -1,5 +1,4 @@
 import uuid, hashlib, urllib, re, os
-from base64 import b64encode
 
 PREFIX = "/video/couchpotato"
 
@@ -34,7 +33,7 @@ def AuthHeader():
     header = {}
 
     if Prefs['cpUser'] and Prefs['cpPass']:
-        header = {'Authorization': 'Basic ' + b64encode(Prefs['cpUser'] + ':' + Prefs['cpPass'])}
+        header = {'Authorization': 'Basic ' + String.Base64Encode(Prefs['cpUser'] + ':' + Prefs['cpPass'])}
 
     return header
 
