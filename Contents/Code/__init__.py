@@ -130,7 +130,10 @@ def WantedMenu():
                 title = title + ' (%s)' % year
                 oc.add(PopupDirectoryObject(key=Callback(WantedList, dataID=dataID), title=title, summary=summary, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
     
-    return oc
+    if len(oc) < 1:
+        return ObjectContainer(header="No items to display", message="This directory appears to be empty.")
+    else:
+        return oc
   
 ################################################################################
 @route('%s/waiting' % PREFIX)
@@ -160,7 +163,10 @@ def WaitingMenu():
         #CP v2 mode
         return WantedMenu()
         
-    return oc
+    if len(oc) < 1:
+        return ObjectContainer(header="No items to display", message="This directory appears to be empty.")
+    else:
+        return oc
   
 ################################################################################
 @route('%s/snatched' % PREFIX)
@@ -205,7 +211,10 @@ def SnatchedMenu():
                 title = title + ' (%s)' % year
                 oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
     
-    return oc
+    if len(oc) < 1:
+        return ObjectContainer(header="No items to display", message="This directory appears to be empty.")
+    else:
+        return oc
   
 ################################################################################
 @route('%s/downloaded' % PREFIX)
@@ -246,7 +255,10 @@ def DownloadedMenu():
             title = title + ' (%s)' % year
             oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb=Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
     
-    return oc
+    if len(oc) < 1:
+        return ObjectContainer(header="No items to display", message="This directory appears to be empty.")
+    else:
+        return oc
 
 ################################################################################
 @route('%s/wantedpopup/{dataID}' % PREFIX)
@@ -340,7 +352,7 @@ def FailedFindNew(dataID):
     return ObjectContainer(header="CouchPotato", message=L('Movie re-added to "Wanted" list'), no_history=True)
 
 ################################################################################
-@route('%s/search/{query}' % PREFIX)
+@route('%s/search' % PREFIX)
 def Search(query):
     '''Search themoviedb.org for movies using user input, and populate a list with the results'''
     oc = ObjectContainer(title2="Search Results", view_group="InfoList")
@@ -376,7 +388,11 @@ def Search(query):
                 oc.add(PopupDirectoryObject(key=Callback(AddMovieMenu, id=imdbID, year=year, provider="TMDB"),
                         title=movieTitle, summary=overview, thumb = Resource.ContentsOfURLWithFallback(url=posterUrl, fallback='no_poster.jpg')))
                 resultCount = resultCount+1
-    return oc
+    
+    if len(oc) < 1:
+        return ObjectContainer(header="No items to display", message="This directory appears to be empty.")
+    else:
+        return oc
     
 ################################################################################
 @route('%s/addmenu/{id}/{year}' % PREFIX)
@@ -605,9 +621,13 @@ def ComingMoviesListMenu(list_type):
         title = String.CapitalizeWords(name.replace('_', ' '))
         url = movieLists['links'][name]
         oc.add(DirectoryObject(key=Callback(ComingMoviesList, title=title, url=url), title=title, thumb=R(ICON)))
-    return oc
+    
+    if len(oc) < 1:
+        return ObjectContainer(header="No items to display", message="This directory appears to be empty.")
+    else:
+        return oc
 
-@route('%s/comingmovies/{title}/{url}' % PREFIX)  
+@route('%s/comingmovies' % PREFIX)  
 def ComingMoviesList(title, url=None):
     oc = ObjectContainer(title2=title, view_group="InfoList")
     
@@ -619,7 +639,11 @@ def ComingMoviesList(title, url=None):
         thumb= movie['posters']['original']
         
         oc.add(PopupDirectoryObject(key=Callback(DetailsMenu, movie=movie), title=title, summary=summary, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
-    return oc
+    
+    if len(oc) < 1:
+        return ObjectContainer(header="No items to display", message="This directory appears to be empty.")
+    else:
+        return oc
 
 @route('%s/details/{movie}' % PREFIX, movie=dict)
 def DetailsMenu(movie):
@@ -633,7 +657,7 @@ def DetailsMenu(movie):
     oc.add(DirectoryObject(key=Callback(ComingMoviesList, title=movie['title'], url=movie['links']['similar']), title="Find Similar Movies", thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
     return oc
 
-@route('%s/reviews/{title}/{url}' % PREFIX)
+@route('%s/reviews' % PREFIX)
 def ReviewsMenu(title, url):
     oc = ObjectContainer(title1=title, title2="Reviews", view_group="InfoList")
     reviews = JSON.ObjectFromURL(url +'?apikey=%s' % RT_API_KEY)['reviews']
@@ -643,9 +667,13 @@ def ReviewsMenu(title, url):
         except: score = 'N/A'
         summary = "Rating: %s\n\n%s" % (score, review['quote'])
         oc.add(DirectoryObject(key=Callback(DoNothing), title=title, summary=summary, thumb=None))
-    return oc
+    
+    if len(oc) < 1:
+        return ObjectContainer(header="No items to display", message="This directory appears to be empty.")
+    else:
+        return oc
 
-@route('%s/trailers/{title}/{url}' % PREFIX)
+@route('%s/trailers' % PREFIX)
 def TrailersMenu(title, url):
     oc = ObjectContainer(title1=title, title2="Trailers", view_group="InfoList")
     trailers = JSON.ObjectFromURL(url +'?apikey=%s' % RT_API_KEY)['clips']
@@ -656,7 +684,11 @@ def TrailersMenu(title, url):
         duration = int(trailer['duration'])*1000
         url = trailer['links']['alternate']
         oc.add(VideoClipObject(url=url, title=title, duration=duration, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
-    return oc
+    
+    if len(oc) < 1:
+        return ObjectContainer(header="No items to display", message="This directory appears to be empty.")
+    else:
+        return oc
 
 @route('%s/cast/{cast}' % PREFIX, cast=dict)
 def GetCast(cast):
