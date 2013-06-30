@@ -1,13 +1,7 @@
 import uuid, hashlib, urllib, re, os
 from base64 import b64encode
 
-###################################################################################################
-##
-##  TODO:   ?integrate new CouchPotato API (when it is released)?
-##  
-###################################################################################################
-
-APPLICATIONS_PREFIX = "/video/couchpotato"
+PREFIX = "/video/couchpotato"
 
 NAME = L('CouchPotato')
 
@@ -24,7 +18,7 @@ BD_ICON       = 'BD_icon.jpg'
 ####################################################################################################
 
 def Start():
-    Plugin.AddPrefixHandler(APPLICATIONS_PREFIX, MainMenu, NAME, ICON, ART)
+    Plugin.AddPrefixHandler(PREFIX, MainMenu, NAME, ICON, ART)
     
     Plugin.AddViewGroup("InfoList", viewMode="InfoList", mediaType="items")
     Plugin.AddViewGroup("List", viewMode="List", mediaType="items")
