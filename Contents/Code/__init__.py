@@ -217,8 +217,8 @@ def SnatchedMenu():
         return oc
   
 ################################################################################
-@route('%s/downloaded' % PREFIX)
-def DownloadedMenu():
+@route('%s/downloaded' % PREFIX, offset=int)
+def DownloadedMenu(offset=0):
 
     oc = ObjectContainer(view_group="InfoList", title2="Downloaded", no_cache=True)
     if not Prefs['cpApiMode']:
@@ -229,19 +229,20 @@ def DownloadedMenu():
         thumb = R(DL_ICON)
         summary = 'This movie should now be available in your Plex library.'
         
-        for item in wantedPage.xpath('//div[@id="downloaded"]/span'):
+        for item in wantedPage.xpath('//div[@id="downloaded"]/span')[offset:offset+20]:
             title = item.text.replace('\n','').replace('\t','')
             #Log.Debug('Parsing ' + title)
             dataID = item.xpath('./a')[1].get('data-id')
             oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
-        
+        if len(wantedPage.xpath('//div[@id="downloaded"]/span')) > (offset+20):
+            oc.add(NextPageObject(key=Callback(DownloadedMenu, offset=offset+20)))
     else:
         #CP v2 mode
         thumbDefault = R(DL_ICON)
         summaryDefault = 'This movie should now be available in your Plex library.'
         cpResult = CP_API_CALL('movie.list',{'status':'done'})
         
-        for item in cpResult['movies']:
+        for item in cpResult['movies'][offset:offset+20]:
             try: fileList = item['library']['files']
             except: fileList = []
             thumb = GetPosterFromFileList(fileList, thumbDefault)
@@ -254,6 +255,8 @@ def DownloadedMenu():
             dataID = item['id']
             title = title + ' (%s)' % year
             oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb=Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
+        if len(cpResult['movies']) > (offset+20):
+            oc.add(NextPageObject(key=Callback(DownloadedMenu, offset=offset+20)))
     
     if len(oc) < 1:
         return ObjectContainer(header="No items to display", message="This directory appears to be empty.")
