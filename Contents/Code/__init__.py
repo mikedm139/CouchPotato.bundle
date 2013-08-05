@@ -264,7 +264,7 @@ def DownloadedMenu(offset=0):
         return oc
 
 ################################################################################
-@route('%s/wantedpopup/{dataID}' % PREFIX)
+@route('%s/wantedpopup' % PREFIX)
 def WantedList(dataID):
     '''Display an action-context menu for the selected movie'''
     oc = ObjectContainer(title2="Wanted Movies")
@@ -273,7 +273,7 @@ def WantedList(dataID):
     return oc
 
 ################################################################################
-@route('%s/snatchedpopup/{dataID}' % PREFIX)
+@route('%s/snatchedpopup' % PREFIX)
 def SnatchedList(dataID):
     '''Display an action-context menu for the selected movie'''
     oc = ObjectContainer()
@@ -284,7 +284,7 @@ def SnatchedList(dataID):
     return oc
 
 ################################################################################
-@route('%s/refresh/{dataID}' % PREFIX)
+@route('%s/refresh' % PREFIX)
 def ForceRefresh(dataID):
 
     if not Prefs['cpApiMode']:
@@ -298,7 +298,7 @@ def ForceRefresh(dataID):
     return ObjectContainer(header="CouchPotato", message=L('Forcing refresh/search'), no_history=True)
 
 ################################################################################
-@route('%s/remove/{dataID}' % PREFIX)
+@route('%s/remove' % PREFIX)
 def RemoveMovie(dataID):
     '''Tell CouchPotato to remove the selected movie from the wanted list'''
     if not Prefs['cpApiMode']:
@@ -313,7 +313,7 @@ def RemoveMovie(dataID):
     return ObjectContainer(header="CouchPotato", message=L('Deleting from wanted list'), no_history=True)
 
 ################################################################################
-@route('%s/completed/{dataID}' % PREFIX)
+@route('%s/completed' % PREFIX)
 def DownloadComplete(dataID):
     '''Tell CouchPotato to mark the selected movie as a completed download'''
     if not Prefs['cpApiMode']:
@@ -327,7 +327,7 @@ def DownloadComplete(dataID):
         return ObjectContainer(header="CouchPotato", message=L('Operation not supported in CP v2'), no_history=True)
 
 ################################################################################
-@route('%s/retry/{dataID}' % PREFIX)
+@route('%s/retry' % PREFIX)
 def FailedRetry(dataID):
     '''Tell CouchPotato to mark the selected movie as a failed download and retry using the same file'''
     if not Prefs['cpApiMode']:
@@ -341,7 +341,7 @@ def FailedRetry(dataID):
         return ObjectContainer(header="CouchPotato", message=L('Operation not yet supported CP v2'), no_history=True)
 
 ################################################################################
-@route('%s/findnew/{dataID}' % PREFIX)
+@route('%s/findnew' % PREFIX)
 def FailedFindNew(dataID):
     '''Tell CouchPotato to mark the selected movie as a failed download and find a different file to retry'''
     if not Prefs['cpApiMode']:
@@ -398,7 +398,7 @@ def Search(query):
         return oc
     
 ################################################################################
-@route('%s/addmenu/{id}/{year}' % PREFIX)
+@route('%s/addmenu' % PREFIX)
 def AddMovieMenu(id, year):
     '''Display an action/context menu for the selected movie'''
     oc = ObjectContainer()
@@ -407,7 +407,7 @@ def AddMovieMenu(id, year):
     return oc
 
 ################################################################################
-@route('%s/add/{id}/{year}' % PREFIX)
+@route('%s/add' % PREFIX)
 def AddMovie(id, year):
     '''Tell CouchPotato to add the selected movie to the wanted list'''
     if not Prefs['cpApiMode']:
@@ -515,7 +515,7 @@ def Get_CP_API_KEY():
     return cpResult['api_key']
 
 ################################################################################
-@route('%s/apiurl/{command}/{apiParm}/{apiFile}/{apiCache}' % PREFIX, command=str, apiParm=dict, apiFile=str, apiCache=bool)
+@route('%s/apiurl' % PREFIX, command=str, apiParm=dict, apiFile=str, apiCache=bool)
 def CP_API_URL(command, apiParm={}, apiFile='', apiCache=False):
     if not apiCache:
         apiParm['nocache_uuid'] = uuid.uuid1()
@@ -528,7 +528,7 @@ def CP_API_URL(command, apiParm={}, apiFile='', apiCache=False):
     return apiUrl
     
 ################################################################################
-@route('%s/api/{command}/{apiParm}/{apiFile}/{apiCache}' % PREFIX, command=str, apiParm=dict, apiFile=str, apiCache=bool)
+@route('%s/api' % PREFIX, command=str, apiParm=dict, apiFile=str, apiCache=bool)
 def CP_API_CALL(command, apiParm={}, apiFile='', apiCache=False):
     try: cpResult = JSON.ObjectFromURL(CP_API_URL(command, apiParm, apiFile, apiCache))
     except:
@@ -537,7 +537,7 @@ def CP_API_CALL(command, apiParm={}, apiFile='', apiCache=False):
     return cpResult
 
 ################################################################################
-@route('%s/poster/{fileList}/{posterDefault}' % PREFIX, fileList=dict, posterDefault=str)
+@route('%s/poster' % PREFIX, fileList=dict, posterDefault=str)
 def GetPosterFromFileList(fileList,posterDefault):
     poster = posterDefault
     for item in fileList:
@@ -551,7 +551,7 @@ def GetPosterFromFileList(fileList,posterDefault):
     return poster
 
 ################################################################################
-@route('%s/qualiteis/{id}/{year}' % PREFIX)
+@route('%s/qualities' % PREFIX)
 def QualitySelectMenu(id, year):
     '''provide an option to select a quality other than default before adding a movie'''
     oc = ObjectContainer()
@@ -576,7 +576,7 @@ def QualitySelectMenu(id, year):
     return oc
 
 ################################################################################
-@route('%s/addquality/{id}/{year}/{quality}' % PREFIX)
+@route('%s/addquality' % PREFIX)
 def AddWithQuality(id, year, quality):   
     '''tell CouchPotato to add the given movie with the given quality (rather than
         the defaultQuality)'''
@@ -648,7 +648,7 @@ def ComingMoviesList(title, url=None):
     else:
         return oc
 
-@route('%s/details/{movie}' % PREFIX, movie=dict)
+@route('%s/details' % PREFIX, movie=dict)
 def DetailsMenu(movie):
     oc = ObjectContainer(title2=movie['title'])
     thumb = movie['posters']['original']
@@ -693,7 +693,7 @@ def TrailersMenu(title, url):
     else:
         return oc
 
-@route('%s/cast/{cast}' % PREFIX, cast=dict)
+@route('%s/cast' % PREFIX, cast=dict)
 def GetCast(cast):
     actors = ''
     for actor in cast:
@@ -703,7 +703,7 @@ def GetCast(cast):
         actors = actors + '%s - %s\n' % (name, role)
     return actors
 
-@route('%s/releasedates/{movie}' % PREFIX, movie=dict)
+@route('%s/releasedates' % PREFIX, movie=dict)
 def GetReleaseDates(movie):
     try: theater = movie['release_dates']['theater']
     except: theater = 'N/A'
@@ -711,7 +711,7 @@ def GetReleaseDates(movie):
     except: dvd = 'N/A'
     return "Theater: %s\nDVD: %s" % (theater, dvd)
 
-@route('%s/summary/{movie}' % PREFIX, movie=dict)
+@route('%s/summary' % PREFIX, movie=dict)
 def BuildSummary(movie):
     critic_rating = movie['ratings']['critics_score']
     if critic_rating == -1:
