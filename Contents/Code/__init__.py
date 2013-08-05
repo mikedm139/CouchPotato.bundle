@@ -388,7 +388,7 @@ def Search(query):
             if year != None:
                 title = "%s (%s)" % (movieTitle, year)
                 #Log.Debug(movieTitle + ' ('+year+') ' + ' found'),
-                oc.add(PopupDirectoryObject(key=Callback(AddMovieMenu, id=imdbID, year=year, provider="TMDB"),
+                oc.add(PopupDirectoryObject(key=Callback(AddMovieMenu, id=imdbID, year=year),
                         title=movieTitle, summary=overview, thumb = Resource.ContentsOfURLWithFallback(url=posterUrl, fallback='no_poster.jpg')))
                 resultCount = resultCount+1
     
