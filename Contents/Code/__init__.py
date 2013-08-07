@@ -657,7 +657,8 @@ def DetailsMenu(movie):
     oc.add(DirectoryObject(key=Callback(QualitySelectMenu, id=imdb_ttid, year=str(movie['year'])), title='Select quality to add', thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
     oc.add(DirectoryObject(key=Callback(ReviewsMenu, title=movie['title'], url=movie['links']['reviews']), title="Read Reviews", thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
     oc.add(DirectoryObject(key=Callback(TrailersMenu, title=movie['title'], url=movie['links']['clips']), title="Watch Trailers", thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
-    oc.add(DirectoryObject(key=Callback(ComingMoviesList, title=movie['title'], url=movie['links']['similar']), title="Find Similar Movies", thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
+    if len(ComingMoviesList(title=movie['title'], url=movie['links']['similar'])) > 0:
+        oc.add(DirectoryObject(key=Callback(ComingMoviesList, title=movie['title'], url=movie['links']['similar']), title="Find Similar Movies", thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
     return oc
 
 @route('%s/reviews' % PREFIX)
