@@ -494,10 +494,14 @@ def UpdateNow():
 ################################################################################
 @route('%s/cpurl' % PREFIX)
 def Get_CP_URL():
+    cpUrlBase = Prefs['cpURLBase']
+    if cpUrlBase:
+        if cpUrlBase[0] != '/':
+           cpUrlBase = '/' + cpUrlBase
     if Prefs['https']:
-        return 'https://'+Prefs['cpIP']+':'+Prefs['cpPort']
+        return 'https://%s:%s%s' % (Prefs['cpIP'], Prefs['cpPort'], cpUrlBase)
     else:
-        return 'http://'+Prefs['cpIP']+':'+Prefs['cpPort']
+        return 'http://%s:%s%s' % (Prefs['cpIP'], Prefs['cpPort'], cpUrlBase)
   
 ################################################################################
 @route('%s/apikey' % PREFIX)
