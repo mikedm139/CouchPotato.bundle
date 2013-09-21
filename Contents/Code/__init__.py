@@ -366,33 +366,32 @@ def Search(query):
     Log.Debug('Search term(s): ' + query)
     
     resultList = CP_API_CALL('movie.search',{'q':String.Quote(query, usePlus=True)})
-    Log.Debug(resultList)
     resultCount = 0
     
-    for movie in resultList.xpath('//movie'):
+    for movie in resultList['movies']:
+        Log.Debug(movie)
         if resultCount < 10:
-            movieTitle = movie.find("name").text
-            imdbID = movie.find('imdb_id').text
-            releaseDate = movie.find('released').text
-            if releaseDate != '1900-01-01':
-                try:
-                    year = str(Datetime.ParseDate(releaseDate).year)
-                    movieTitle = "%s (%s)" % (movieTitle, year)
-                except: year = None
-            else:
-                year = None
-            overview = movie.find('overview').text
+            movieTitle = movie['original_title']
+            Log.Debug(movieTitle)
             try:
-                posterUrl = movie.xpath('.//image[@type="poster"]')[-1].get('url')
+                imdbID = movie['imdb']
+            except:
+                imdbID = movie['tmdb_id']
+            Log.Debug(imdbID)
+            year = movie['year']
+            Log.Debug(year)
+            overview = movie['plot']
+            Log.Debug(overview)
+            try:
+                posterUrl = movie['images']['poster_original'][0]
+                Log.Debug(posterUrl)
             except:
                 posterUrl = 'None'
-        
-            if year != None:
-                title = "%s (%s)" % (movieTitle, year)
-                #Log.Debug(movieTitle + ' ('+year+') ' + ' found'),
-                oc.add(PopupDirectoryObject(key=Callback(AddMovieMenu, id=imdbID, year=year),
-                        title=movieTitle, summary=overview, thumb = Resource.ContentsOfURLWithFallback(url=posterUrl, fallback='no_poster.jpg')))
-                resultCount = resultCount+1
+            
+            oc.add(PopupDirectoryObject(key=Callback(AddMovieMenu, imdbID=imdbID),
+                    title = "%s (%s)" % (movieTitle, year), summary=overview,
+                    thumb = Resource.ContentsOfURLWithFallback(url=posterUrl, fallback='no_poster.jpg')))
+            resultCount = resultCount+1
     
     if len(oc) < 1:
         return ObjectContainer(header="No items to display", message="This directory appears to be empty.")
@@ -401,28 +400,19 @@ def Search(query):
     
 ################################################################################
 @route('%s/addmenu' % PREFIX)
-def AddMovieMenu(id, year):
+def AddMovieMenu(imdbID):
     '''Display an action/context menu for the selected movie'''
     oc = ObjectContainer()
-    oc.add(DirectoryObject(key=Callback(AddMovie, id=id, year=year), title='Add to Wanted list'))
-    oc.add(DirectoryObject(key=Callback(QualitySelectMenu, id=id, year=year), title='Select quality to add'))
+    oc.add(DirectoryObject(key=Callback(AddMovie, imdbID=imdbID), title='Add to Wanted list'))
+    oc.add(DirectoryObject(key=Callback(QualitySelectMenu, imdbID=imdbID), title='Select quality to add'))
     return oc
 
 ################################################################################
 @route('%s/add' % PREFIX)
-def AddMovie(id, year):
+def AddMovie(imdbID):
     '''Tell CouchPotato to add the selected movie to the wanted list'''
-    if not Prefs['cpApiMode']:
-        #CP v1 mode
-        url = Get_CP_URL() + '/movie/'
-        defaultQuality = HTML.ElementFromURL(url, headers=AuthHeader()).xpath('//form[@id="addNew"]/div/select/option')[0].get('value')
-        post_values = {'quality' : defaultQuality, 'add' : "Add"}
-    
-        # tell CouchPotato to add the given movie
-        moviedAdded = HTTP.Request(url+'imdbAdd/?id='+id+'&year='+year, post_values, headers=AuthHeader())
-    else:
-        #CP v2 mode
-        cpResult = CP_API_CALL('movie.add',{'identifier':id})
+    #CP v2 mode
+    cpResult = CP_API_CALL('movie.add',{'identifier':imdbID})
     
     return ObjectContainer(header="CouchPotato", message=L("Added to Wanted list."), no_history=True)
 
@@ -560,26 +550,17 @@ def GetPosterFromFileList(fileList,posterDefault):
 
 ################################################################################
 @route('%s/qualities' % PREFIX)
-def QualitySelectMenu(id, year):
+def QualitySelectMenu(imdbID):
     '''provide an option to select a quality other than default before adding a movie'''
     oc = ObjectContainer()
-    if not Prefs['cpApiMode']:
-        #CP v1 mode
-        url = Get_CP_URL() + '/movie/'
-        for quality in HTML.ElementFromURL(url, headers=AuthHeader()).xpath('//form[@id="addNew"]/div/select/option'):
-            value = quality.get('value')
-            name = quality.text
-            oc.add(DirectoryObject(key=Callback(AddWithQuality, id=id, year=year,
-                quality=value), title=name, summary='Add movie with '+name+' quality', thumb=R(ICON)))
-    else:
-        #CP v2 mode
-        cpResult = CP_API_CALL('profile.list')
+    #CP v2 mode
+    cpResult = CP_API_CALL('profile.list')
         
-        for quality in cpResult['list']:
-            name = quality['label']
-            value = quality['id']
-            oc.add(DirectoryObject(key=Callback(AddWithQuality, id=id, year=year,
-                quality=value), title=name, summary='Add movie with '+name+' quality profile', thumb=R(ICON)))
+    for quality in cpResult['list']:
+        name = quality['label']
+        value = quality['id']
+        oc.add(DirectoryObject(key=Callback(AddWithQuality, imdbID=imdbID, quality=value),
+            title=name, summary='Add movie with '+name+' quality profile', thumb=R(ICON)))
         
     return oc
 
@@ -590,19 +571,11 @@ def TimeToUpgrade():
 
 ################################################################################
 @route('%s/addquality' % PREFIX)
-def AddWithQuality(id, year, quality):   
+def AddWithQuality(imdbID, quality):   
     '''tell CouchPotato to add the given movie with the given quality (rather than
         the defaultQuality)'''
-    if not Prefs['cpApiMode']:
-        #CP v1 mode
-        url = Get_CP_URL() + '/movie/'
-        post_values = {'quality' : quality, 'add' : "Add"}
-    
-        # tell CouchPotato to add the given movie
-        moviedAdded = HTTP.Request(url+'imdbAdd/?id='+id+'&year='+year, post_values, headers=AuthHeader())
-    else:
-        #CP v2 mode   
-        cpResult = CP_API_CALL('movie.add',{'identifier':id, 'profile_id':quality})
+    #CP v2 mode   
+    cpResult = CP_API_CALL('movie.add',{'identifier':id, 'profile_id':quality})
     
     return ObjectContainer(header="CouchPotato", message=L("Added to Wanted list."), no_history=True)
     
