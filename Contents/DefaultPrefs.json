@@ -35,6 +35,14 @@
                 "type":         "text",
                 "default":      "0.0.0.0"
         },
+
+        {
+                "id":           "cpURLBase",
+                "label":        "CouchPotato URL Base",
+                "type":         "text",
+                "default":      ""
+        },
+        
         
         {
                 "id":           "cpPort",
