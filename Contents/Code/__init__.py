@@ -53,8 +53,12 @@ def MainMenu():
         summary="View and edit your CouchPotato wanted movies list",thumb=R(ICON)))
     oc.add(DirectoryObject(key=Callback(ComingSoonMenu), title="Coming Soon",
         summary="Browse upcoming movies and add them to your wanted list", thumb=R("RT-icon.png")))
-    oc.add(InputDirectoryObject(key=Callback(Search), title="Search for Movies",
-        summary="Find movies to add to your wanted list", prompt="Search for", thumb=R(SEARCH_ICON),))
+    if Prefs['cpApiMode']:
+        oc.add(InputDirectoryObject(key=Callback(Search), title="Search for Movies",
+            summary="Find movies to add to your wanted list", prompt="Search for", thumb=R(SEARCH_ICON),))
+    else:
+        oc.add(DirectoryObject(key=Callback(TimeToUpgrade), title="Search requires CP v2",
+            summary="Searching for movies and adding them via this plugin is no longer supported for CouchPotato v1.", thumb=R(SEARCH_ICON),))
     oc.add(PrefsObject(title="Preferences", summary="Set prefs to allow plugin to connect to CouchPotato app",thumb=R(PREFS_ICON)))
     if UpdateAvailable():
         Log.Debug('Update available')
@@ -357,14 +361,12 @@ def FailedFindNew(dataID):
 ################################################################################
 @route('%s/search' % PREFIX)
 def Search(query):
-    '''Search themoviedb.org for movies using user input, and populate a list with the results'''
+    '''Request search results from CouchPotato. Requires CP v2'''
     oc = ObjectContainer(title2="Search Results", view_group="InfoList")
-    #Log.Debug('Search term(s): ' + query)
+    Log.Debug('Search term(s): ' + query)
     
-    resultList = XML.ElementFromURL(
-        'http://api.themoviedb.org/2.1/Movie.search/en/xml/9b939aee0aaafc12a65bf448e4af9543/' +
-        String.Quote(query, usePlus=False))
-    
+    resultList = CP_API_CALL('movie.search',{'q':String.Quote(query, usePlus=True)})
+    Log.Debug(resultList)
     resultCount = 0
     
     for movie in resultList.xpath('//movie'):
@@ -498,6 +500,8 @@ def Get_CP_URL():
     if cpUrlBase:
         if cpUrlBase[0] != '/':
            cpUrlBase = '/' + cpUrlBase
+    else:
+        cpUrlBase = ''
     if Prefs['https']:
         return 'https://%s:%s%s' % (Prefs['cpIP'], Prefs['cpPort'], cpUrlBase)
     else:
@@ -578,6 +582,11 @@ def QualitySelectMenu(id, year):
                 quality=value), title=name, summary='Add movie with '+name+' quality profile', thumb=R(ICON)))
         
     return oc
+
+################################################################################
+@route('%s/upgradetime' % PREFIX)
+def TimeToUpgrade():
+    return ObjectContainer(header="Time to upgrade to CouchPotato v2", message="Support for CouchPotato v1 is going away soon.")
 
 ################################################################################
 @route('%s/addquality' % PREFIX)
