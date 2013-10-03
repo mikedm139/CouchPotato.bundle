@@ -376,7 +376,12 @@ def Search(query):
                 imdbID = movie['imdb']
             except:
                 imdbID = movie['tmdb_id']
-            year = movie['year']
+            try:
+                year = movie['year']
+                title = "%s (%s)" % (movieTitle, year)
+            except:
+                year = None
+                title = movieTitle
             overview = movie['plot']
             try:
                 posterUrl = movie['images']['poster_original'][0]
@@ -384,7 +389,7 @@ def Search(query):
                 posterUrl = 'None'
             
             oc.add(PopupDirectoryObject(key=Callback(AddMovieMenu, imdbID=imdbID),
-                    title = "%s (%s)" % (movieTitle, year), summary=overview,
+                    title = title, summary=overview,
                     thumb = Resource.ContentsOfURLWithFallback(url=posterUrl, fallback='no_poster.jpg')))
             resultCount = resultCount+1
     
