@@ -372,19 +372,14 @@ def Search(query):
         Log.Debug(movie)
         if resultCount < 10:
             movieTitle = movie['original_title']
-            Log.Debug(movieTitle)
             try:
                 imdbID = movie['imdb']
             except:
                 imdbID = movie['tmdb_id']
-            Log.Debug(imdbID)
             year = movie['year']
-            Log.Debug(year)
             overview = movie['plot']
-            Log.Debug(overview)
             try:
                 posterUrl = movie['images']['poster_original'][0]
-                Log.Debug(posterUrl)
             except:
                 posterUrl = 'None'
             
