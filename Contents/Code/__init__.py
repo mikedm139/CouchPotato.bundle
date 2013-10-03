@@ -382,7 +382,10 @@ def Search(query):
             except:
                 year = None
                 title = movieTitle
-            overview = movie['plot']
+            try:
+                overview = movie['plot']
+            except:
+                overview = ""
             try:
                 posterUrl = movie['images']['poster_original'][0]
             except:
