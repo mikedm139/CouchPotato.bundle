@@ -642,8 +642,8 @@ def DetailsMenu(movie):
     oc = ObjectContainer(title2=movie['title'])
     thumb = movie['posters']['original']
     imdb_ttid = 'tt'+str(movie['alternate_ids']['imdb'])
-    oc.add(DirectoryObject(key=Callback(AddMovie, imdbID=imdb_ttid, year=str(movie['year'])), title='Add to Wanted list', thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
-    oc.add(DirectoryObject(key=Callback(QualitySelectMenu, imdbID=imdb_ttid, year=str(movie['year'])), title='Select quality to add', thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
+    oc.add(DirectoryObject(key=Callback(AddMovie, imdbID=imdb_ttid), title='Add to Wanted list', thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
+    oc.add(DirectoryObject(key=Callback(QualitySelectMenu, imdbID=imdb_ttid), title='Select quality to add', thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
     oc.add(DirectoryObject(key=Callback(ReviewsMenu, title=movie['title'], url=movie['links']['reviews']), title="Read Reviews", thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
     oc.add(DirectoryObject(key=Callback(TrailersMenu, title=movie['title'], url=movie['links']['clips']), title="Watch Trailers", thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
     if len(ComingMoviesList(title=movie['title'], url=movie['links']['similar'])) > 0:
