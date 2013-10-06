@@ -49,16 +49,15 @@ def MainMenu():
     '''Populate main menu options'''
     oc = ObjectContainer(view_group="InfoList", no_cache=True)
 
-    oc.add(DirectoryObject(key=Callback(MoviesMenu), title="Manage your movies list",
-        summary="View and edit your CouchPotato wanted movies list",thumb=R(ICON)))
-    oc.add(DirectoryObject(key=Callback(ComingSoonMenu), title="Coming Soon",
-        summary="Browse upcoming movies and add them to your wanted list", thumb=R("RT-icon.png")))
-    if Prefs['cpApiMode']:
+    if CP_API_KEY() != 'notfound':
+        oc.add(DirectoryObject(key=Callback(MoviesMenu), title="Manage your movies list",
+            summary="View and edit your CouchPotato wanted movies list",thumb=R(ICON)))
+        oc.add(DirectoryObject(key=Callback(ComingSoonMenu), title="Coming Soon",
+            summary="Browse upcoming movies and add them to your wanted list", thumb=R("RT-icon.png")))
         oc.add(InputDirectoryObject(key=Callback(Search), title="Search for Movies",
             summary="Find movies to add to your wanted list", prompt="Search for", thumb=R(SEARCH_ICON),))
-    else:
-        oc.add(DirectoryObject(key=Callback(TimeToUpgrade), title="Search requires CP v2",
-            summary="Searching for movies and adding them via this plugin is no longer supported for CouchPotato v1.", thumb=R(SEARCH_ICON),))
+        oc.add(DirectoryObject(key=Callback(Suggestions), title="Suggestions",
+            summary="Movies suggested by CouchPotato", thumb=R(ICON)))
     oc.add(PrefsObject(title="Preferences", summary="Set prefs to allow plugin to connect to CouchPotato app",thumb=R(PREFS_ICON)))
     if UpdateAvailable():
         Log.Debug('Update available')
