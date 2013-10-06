@@ -39,9 +39,13 @@ def AuthHeader():
 ####################################################################################################
 @route('%s/validate' % PREFIX)
 def ValidatePrefs():
-    #if Prefs['cpUser'] and Prefs['cpPass']:
-    #    HTTP.SetPassword(url=Get_CP_URL(), username=Prefs['cpUser'], password=Prefs['cpPass'])
-    return
+    if Prefs['cpUser'] and Prefs['cpPass']:
+        try:
+            Dict['ApiKey'] = Get_CP_API_KEY()
+            Log.Debug("CouchPotato API key stored for future use.")
+            return
+        except:
+            return ObjectContainer(header="Unable to retrieve API key", message="Please confirm that your settings are correct.")
 
 ####################################################################################################
 @handler(PREFIX, NAME, ICON, ART)
@@ -503,7 +507,15 @@ def Get_CP_URL():
         return 'http://%s:%s%s' % (Prefs['cpIP'], Prefs['cpPort'], cpUrlBase)
   
 ################################################################################
-@route('%s/apikey' % PREFIX)
+@route('%s/cpapikey' % PREFIX)
+def CP_API_KEY():
+    if Dict['ApiKey'] == None:
+        return Get_CP_API_KEY()
+    else:
+        return Dict['ApiKey']
+    
+################################################################################
+@route('%s/getapikey' % PREFIX)
 def Get_CP_API_KEY():
     try: mUser = hashlib.md5(Prefs['cpUser']).hexdigest()
     except: mUser = ''
@@ -525,7 +537,7 @@ def CP_API_URL(command, apiParm={}, apiFile='', apiCache=False):
     cpParams = urllib.urlencode(apiParm)
     if len(str(cpParams)) > 0:
         cpParams = '?'+str(cpParams)
-    apiKey = Get_CP_API_KEY()
+    apiKey = CP_API_KEY()
     apiUrl = Get_CP_URL()+'/api/'+str(apiKey)+'/'+str(command)+'/'+str(apiFile)+cpParams
     Log.Debug('API_URL:'+apiUrl)
     return apiUrl
