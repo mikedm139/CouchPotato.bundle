@@ -607,16 +607,20 @@ def Suggestions():
 def SuggestionMenu(imdbID):
     oc = AddMovieMenu(imdbID)
     oc.add(DirectoryObject(key=Callback(IgnoreSuggestion, imdbID=imdbID), title = "Ignore this suggestion"))
+    oc.add(DirectoryObject(key=Callback(IgnoreSuggestion, imdbID=imdbID, seenIt=True), title = "Seen it, Like it, don't add."))
     return oc
 
 ################################################################################
 @route('%s/suggestions/ignore' % PREFIX)
-def IgnoreSuggestion(imdbID):
+def IgnoreSuggestion(imdbID, seenIt=None):
     '''tell CouchPotato to remove the given movie from the list of suggestions'''
-    #CP v2 mode   
-    cpResult = CP_API_CALL('suggestion.ignore',{'imdb':imdbID})
-    
-    return ObjectContainer(header="CouchPotato", message=L("Suggestion ignored."), no_history=True)
+    #CP v2 mode
+    if seenIt:
+        cpResult = CP_API_CALL('suggestion.ignore',{'imdb':imdbID, 'mark_seen':1})
+        return ObjectContainer(header="CouchPotato", message=L("Suggestion removed from list."), no_history=True)
+    else:
+        cpResult = CP_API_CALL('suggestion.ignore',{'imdb':imdbID})
+        return ObjectContainer(header="CouchPotato", message=L("Suggestion ignored."), no_history=True)
 
 ####################################################################################################
 ####################################################################################################
