@@ -402,19 +402,22 @@ def Search(query):
     
 ################################################################################
 @route('%s/addmenu' % PREFIX)
-def AddMovieMenu(imdbID):
+def AddMovieMenu(imdbID, suggestion=True):
     '''Display an action/context menu for the selected movie'''
     oc = ObjectContainer()
-    oc.add(DirectoryObject(key=Callback(AddMovie, imdbID=imdbID), title='Add to Wanted list'))
-    oc.add(DirectoryObject(key=Callback(QualitySelectMenu, imdbID=imdbID), title='Select quality to add'))
+    oc.add(DirectoryObject(key=Callback(AddMovie, imdbID=imdbID, suggestion=True), title='Add to Wanted list'))
+    oc.add(DirectoryObject(key=Callback(QualitySelectMenu, imdbID=imdbID, suggestion=True), title='Select quality to add'))
     return oc
 
 ################################################################################
 @route('%s/add' % PREFIX)
-def AddMovie(imdbID):
+def AddMovie(imdbID, suggestion=True):
     '''Tell CouchPotato to add the selected movie to the wanted list'''
     #CP v2 mode
     cpResult = CP_API_CALL('movie.add',{'identifier':imdbID})
+    if suggestion:
+        if cpResult['success']:
+            removeFromSuggestions = CP_API_CALL('suggestion.ignore',{'imdb':imdbID, 'remove_only':True})
     
     return ObjectContainer(header="CouchPotato", message=L("Added to Wanted list."), no_history=True)
 
@@ -573,11 +576,14 @@ def TimeToUpgrade():
 
 ################################################################################
 @route('%s/addquality' % PREFIX)
-def AddWithQuality(imdbID, quality):   
+def AddWithQuality(imdbID, quality, suggestion=True):   
     '''tell CouchPotato to add the given movie with the given quality (rather than
         the defaultQuality)'''
     #CP v2 mode   
     cpResult = CP_API_CALL('movie.add',{'identifier':imdbID, 'profile_id':quality})
+    if suggestion:
+        if cpResult['success']:
+            removeFromSuggestions = CP_API_CALL('suggestion.ignore',{'imdb':imdbID, 'remove_only':True})
     
     return ObjectContainer(header="CouchPotato", message=L("Added to Wanted list."), no_history=True)
 
@@ -601,10 +607,10 @@ def Suggestions():
                     thumb = Resource.ContentsOfURLWithFallback(url=thumbs, fallback='no_poster.jpg')))
     return oc
 
-################################################################################
+################################################################################################################################################################
 @route('%s/suggestions/menu' % PREFIX)
 def SuggestionMenu(imdbID):
-    oc = AddMovieMenu(imdbID)
+    oc = AddMovieMenu(imdbID, suggestion=True)
     oc.add(DirectoryObject(key=Callback(IgnoreSuggestion, imdbID=imdbID), title = "Ignore this suggestion"))
     oc.add(DirectoryObject(key=Callback(IgnoreSuggestion, imdbID=imdbID, seenIt=True), title = "Seen it, Like it, don't add."))
     return oc
