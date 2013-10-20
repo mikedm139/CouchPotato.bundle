@@ -578,10 +578,46 @@ def AddWithQuality(imdbID, quality):
     '''tell CouchPotato to add the given movie with the given quality (rather than
         the defaultQuality)'''
     #CP v2 mode   
-    cpResult = CP_API_CALL('movie.add',{'identifier':id, 'profile_id':quality})
+    cpResult = CP_API_CALL('movie.add',{'identifier':imdbID, 'profile_id':quality})
     
     return ObjectContainer(header="CouchPotato", message=L("Added to Wanted list."), no_history=True)
+
+################################################################################
+@route('%s/suggestions' % PREFIX)
+def Suggestions():
+    oc = ObjectContainer(title2="Suggestions", no_cache=True)
+    cpResult = CP_API_CALL('suggestion.view')
+    for movie in cpResult['suggestions']:
+        title = movie['original_title']
+        summary = movie['plot']
+        thumbs = movie['images']['poster_original'] + movie['images']['poster']
+
+        try:
+            imdbID = movie['imdb']
+            if imdbID == '': raise e
+        except:
+            imdbID = movie['tmdb_id']
+        oc.add(PopupDirectoryObject(key=Callback(SuggestionMenu, imdbID=imdbID),
+                    title = title, summary=summary,
+                    thumb = Resource.ContentsOfURLWithFallback(url=thumbs, fallback='no_poster.jpg')))
+    return oc
+
+################################################################################
+@route('%s/suggestions/menu' % PREFIX)
+def SuggestionMenu(imdbID):
+    oc = AddMovieMenu(imdbID)
+    oc.add(DirectoryObject(key=Callback(IgnoreSuggestion, imdbID=imdbID), title = "Ignore this suggestion"))
+    return oc
+
+################################################################################
+@route('%s/suggestions/ignore' % PREFIX)
+def IgnoreSuggestion(imdbID):
+    '''tell CouchPotato to remove the given movie from the list of suggestions'''
+    #CP v2 mode   
+    cpResult = CP_API_CALL('suggestion.ignore',{'imdb':imdbID})
     
+    return ObjectContainer(header="CouchPotato", message=L("Suggestion ignored."), no_history=True)
+
 ####################################################################################################
 ####################################################################################################
 ####################################################################################################
