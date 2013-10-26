@@ -607,6 +607,8 @@ def Suggestions():
     for movie in cpResult['suggestions']:
         title = movie['original_title']
         summary = movie['plot']
+        try: year = movie['year']
+        except: year = None
         thumbs = movie['images']['poster_original'] + movie['images']['poster']
 
         try:
@@ -614,15 +616,16 @@ def Suggestions():
             if imdbID == '': raise e
         except:
             imdbID = movie['tmdb_id']
-        oc.add(PopupDirectoryObject(key=Callback(SuggestionMenu, imdbID=imdbID),
+        oc.add(PopupDirectoryObject(key=Callback(SuggestionMenu, imdbID=imdbID, title=title, year=year),
                     title = title, summary=summary,
                     thumb = Resource.ContentsOfURLWithFallback(url=thumbs, fallback='no_poster.jpg')))
     return oc
 
-################################################################################################################################################################
+################################################################################
 @route('%s/suggestions/menu' % PREFIX)
-def SuggestionMenu(imdbID):
+def SuggestionMenu(imdbID, title, year):
     oc = AddMovieMenu(imdbID, suggestion=True)
+    oc.add(DirectoryObject(key=Callback(FindTrailer, title=title, year=year), title="Watch Trailer"))
     oc.add(DirectoryObject(key=Callback(IgnoreSuggestion, imdbID=imdbID), title = "Ignore this suggestion"))
     oc.add(DirectoryObject(key=Callback(IgnoreSuggestion, imdbID=imdbID, seenIt=True), title = "Seen it, Like it, don't add."))
     return oc
@@ -638,6 +641,22 @@ def IgnoreSuggestion(imdbID, seenIt=None):
     else:
         cpResult = CP_API_CALL('suggestion.ignore',{'imdb':imdbID})
         return ObjectContainer(header="CouchPotato", message=L("Suggestion ignored."), no_history=True)
+
+################################################################################
+@route('%s/suggestions/trailer' % PREFIX)
+def FindTrailer(title, year):
+    oc = ObjectContainer(title2 = "%s - Trailer" % title)
+    trailer_url = 'https://gdata.youtube.com/feeds/videos?vq=%s&max-results=1&alt=json-in-script&orderby=relevance&sortorder=descending&format=5&fmt=18'
+    if year:
+        trailer_query = '"%s" %s trailer' % (title, year)
+    else:
+        trailer_query = '"%s" trailer' % title
+    result = HTTP.Request(trailer_url % String.Quote(trailer_query)).content.strip('gdata.io.handleScriptLoaded(')[:-2]
+    yt_data = JSON.ObjectFromString(result)
+    trailer_id = yt_data['feed']['entry'][0]['id']['$t'].split('/')[-1]
+    trailer_url = 'http://youtube.com/watch?v=' + trailer_id
+    oc.add(URLService.MetadataObjectForURL(trailer_url))
+    return oc
 
 ####################################################################################################
 ####################################################################################################
