@@ -199,24 +199,21 @@ def SnatchedMenu():
         #CP v2 mode
         thumbDefault = R(SNATCHED_ICON)
         summaryDefault = 'This movie should now appear in your downloads queue.'
-        cpResult = CP_API_CALL('movie.list',{'status':'active'})
+        cpResult = CP_API_CALL('movie.list',{'release_status':'snatched'})
         
         for item in cpResult['movies']:
-            try: itemRelease = item['releases'][0]
-            except: itemRelease = {}
-            if 'info' in itemRelease:
-                try: fileList = item['library']['files']
-                except: fileList = []
-                thumb = GetPosterFromFileList(fileList, thumbDefault)
-                title = item['library']['info']['original_title']
-                try: summary = item['library']['info']['plot']
-                except: summary = summaryDefault
-                try: rating = item['library']['info']['rating']['imdb'][0]
-                except: rating = 'No Rating'
-                year = item['library']['info']['year']
-                dataID = item['id']
-                title = title + ' (%s)' % year
-                oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
+            try: fileList = item['library']['files']
+            except: fileList = []
+            thumb = GetPosterFromFileList(fileList, thumbDefault)
+            title = item['library']['info']['original_title']
+            try: summary = item['library']['info']['plot']
+            except: summary = summaryDefault
+            try: rating = item['library']['info']['rating']['imdb'][0]
+            except: rating = 'No Rating'
+            year = item['library']['info']['year']
+            dataID = item['id']
+            title = title + ' (%s)' % year
+            oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
     
     if len(oc) < 1:
         return ObjectContainer(header="No items to display", message="This directory appears to be empty.")
