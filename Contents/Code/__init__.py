@@ -391,7 +391,7 @@ def Search(query):
             except:
                 posterUrl = 'None'
             
-            oc.add(PopupDirectoryObject(key=Callback(AddMovieMenu, imdbID=imdbID),
+            oc.add(PopupDirectoryObject(key=Callback(AddMovieMenu, imdbID=imdbID, suggestion=False),
                     title = title, summary=overview,
                     thumb = Resource.ContentsOfURLWithFallback(url=posterUrl, fallback='no_poster.jpg')))
             resultCount = resultCount+1
@@ -406,8 +406,8 @@ def Search(query):
 def AddMovieMenu(imdbID, suggestion=True):
     '''Display an action/context menu for the selected movie'''
     oc = ObjectContainer()
-    oc.add(DirectoryObject(key=Callback(AddMovie, imdbID=imdbID, suggestion=True), title='Add to Wanted list'))
-    oc.add(DirectoryObject(key=Callback(QualitySelectMenu, imdbID=imdbID, suggestion=True), title='Select quality to add'))
+    oc.add(DirectoryObject(key=Callback(AddMovie, imdbID=imdbID, suggestion=suggestion), title='Add to Wanted list'))
+    oc.add(DirectoryObject(key=Callback(QualitySelectMenu, imdbID=imdbID, suggestion=suggestion), title='Select quality to add'))
     return oc
 
 ################################################################################
@@ -564,7 +564,7 @@ def GetPosterFromFileList(fileList,posterDefault):
 
 ################################################################################
 @route('%s/qualities' % PREFIX)
-def QualitySelectMenu(imdbID):
+def QualitySelectMenu(imdbID, suggestion):
     '''provide an option to select a quality other than default before adding a movie'''
     oc = ObjectContainer()
     #CP v2 mode
@@ -573,7 +573,7 @@ def QualitySelectMenu(imdbID):
     for quality in cpResult['list']:
         name = quality['label']
         value = quality['id']
-        oc.add(DirectoryObject(key=Callback(AddWithQuality, imdbID=imdbID, quality=value),
+        oc.add(DirectoryObject(key=Callback(AddWithQuality, imdbID=imdbID, quality=value, suggestion=suggestion),
             title=name, summary='Add movie with '+name+' quality profile', thumb=R(ICON)))
         
     return oc
@@ -585,7 +585,7 @@ def TimeToUpgrade():
 
 ################################################################################
 @route('%s/addquality' % PREFIX)
-def AddWithQuality(imdbID, quality, suggestion=True):   
+def AddWithQuality(imdbID, quality, suggestion):   
     '''tell CouchPotato to add the given movie with the given quality (rather than
         the defaultQuality)'''
     #CP v2 mode   
