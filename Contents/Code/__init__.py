@@ -52,7 +52,9 @@ def ValidatePrefs():
 def MainMenu():
     '''Populate main menu options'''
     oc = ObjectContainer(view_group="InfoList", no_cache=True)
-
+    
+    update_available = UpdateAvailable()
+    
     if CP_API_KEY() != 'notfound':
         oc.add(DirectoryObject(key=Callback(MoviesMenu), title="Manage your movies list",
             summary="View and edit your CouchPotato wanted movies list",thumb=R(ICON)))
@@ -62,8 +64,10 @@ def MainMenu():
             summary="Find movies to add to your wanted list", prompt="Search for", thumb=R(SEARCH_ICON),))
         oc.add(DirectoryObject(key=Callback(Suggestions), title="Suggestions",
             summary="Movies suggested by CouchPotato", thumb=R(ICON)))
+    
     oc.add(PrefsObject(title="Preferences", summary="Set prefs to allow plugin to connect to CouchPotato app",thumb=R(PREFS_ICON)))
-    if UpdateAvailable():
+    
+    if update_available:
         Log.Debug('Update available')
         oc.add(PopupDirectoryObject(key=Callback(UpdateMenu), title='CouchPotato update available',
             summary='Update your CouchPotato install to the newest version', thumb=R(ICON)))
@@ -449,7 +453,7 @@ def UpdateAvailable():
         #CP v2 mode
         Log.Debug('Running function "UpdateAvailable()"')
         try:
-            cpResult = JSON.ObjectFromURL(CP_API_URL('updater.check'))
+            cpResult = CP_API_CALL('updater.check')
         except:
             Log.Debug('Unable to access CouchPotato webserver. Please check plugin preferences.')
             return False
@@ -483,7 +487,7 @@ def UpdateNow():
     else:
         #CP v2 mode
         try:
-            cpResult = JSON.ObjectFromURL(CP_API_URL('manage.update'))
+            cpResult = CP_API_CALL('manage.update')
         except:
             pass
     time.sleep(10)
@@ -544,8 +548,12 @@ def CP_API_URL(command, apiParm={}, apiFile='', apiCache=False):
 def CP_API_CALL(command, apiParm={}, apiFile='', apiCache=False):
     try: cpResult = JSON.ObjectFromURL(CP_API_URL(command, apiParm, apiFile, apiCache))
     except:
+        #Log the failure
         Log.Debug('FAILED API CALL:'+command)
         cpResult = {'success':False,'error':'Bad result from CP server'}
+        #Reset the stored api key to force user to check prefs
+        Log.Debug('Resetting stored API key')
+        Dict['ApiKey'] = 'notfound'
     return cpResult
 
 ################################################################################
