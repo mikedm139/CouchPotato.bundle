@@ -525,7 +525,6 @@ def Get_CP_API_KEY():
     except: mPass = ''
     url = Get_CP_URL()+'/getkey/?p='+mPass+'&u='+mUser
     Log.Debug('API_KEY_URL: '+url)
-    Log(HTTP.Request(url).content)
     try: cpResult = JSON.ObjectFromURL(url)
     except:
         Log.Debug('ERROR: Unable to load API Key')
