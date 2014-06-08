@@ -33,7 +33,7 @@
                 "id":           "cpIP",
                 "label":        "CouchPotato IP",
                 "type":         "text",
-                "default":      "0.0.0.0"
+                "default":      "localhost"
         },
 
         {
