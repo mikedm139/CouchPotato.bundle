@@ -502,10 +502,13 @@ def Get_CP_URL():
            cpUrlBase = '/' + cpUrlBase
     else:
         cpUrlBase = ''
-    if Prefs['https']:
-        return 'https://%s:%s%s' % (Prefs['cpIP'], Prefs['cpPort'], cpUrlBase)
+    if Prefs['cpIP'].startswith("http"):
+        return '%s:%s%s' % (Prefs['cpIP'], Prefs['cpPort'], cpUrlBase)
     else:
-        return 'http://%s:%s%s' % (Prefs['cpIP'], Prefs['cpPort'], cpUrlBase)
+        if Prefs['https']:
+            return 'https://%s:%s%s' % (Prefs['cpIP'], Prefs['cpPort'], cpUrlBase)
+        else:
+            return 'http://%s:%s%s' % (Prefs['cpIP'], Prefs['cpPort'], cpUrlBase)
   
 ################################################################################
 @route('%s/cpapikey' % PREFIX)
