@@ -1,13 +1,6 @@
 [
 
         {
-                "id":           "cpApiMode",
-                "label":        "Use Couch Potato v2 API (Required for Couch Potato v2)",
-                "type":         "bool",
-                "default":      "true",
-        },
-
-        {
                 "id":           "https",
                 "label":        "use SSL encryption (HTTPS)",
                 "type":         "bool",
