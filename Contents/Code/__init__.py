@@ -90,31 +90,25 @@ def WantedMenu():
     summaryDefault = 'This movie is waiting to be available.'
     cpResult = CP_API_CALL('movie.list',{'status':'active'})
     
-    try: movies = cpResult['movies']
-    except: movies = {}
-        
-    for item in movies:
-        try: itemRelease = item['releases'][0]
-        except: itemRelease = {}
-        if not 'info' in itemRelease:
-            try: fileList = item['library']['files']
-            except: fileList = []
-            thumb = GetPosterFromFileList(fileList, thumbDefault)
-            try: title = item['library']['info']['original_title']
-            except: title = 'Loading...'
-            try: summary = item['library']['info']['plot']
+    for item in cpResult['movies']:
+        try:
+            info = item['info']
+            title = item['title']
+            try: summary = info['plot']
             except: summary = summaryDefault
-            try: rating = item['library']['info']['rating']['imdb'][0]
-            except: rating = 'No Rating'
-            year = item['library']['info']['year']
-            dataID = item['id']
+            year = info['year']
+            dataID = item['_id']
             title = title + ' (%s)' % year
-            oc.add(PopupDirectoryObject(key=Callback(WantedList, dataID=dataID), title=title, summary=summary, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
+            oc.add(PopupDirectoryObject(key=Callback(WantedList, dataID=dataID), title=title, summary=summary, thumb=Callback(GetPoster, images=info['images'])))
+        except:
+            Log("Skipping item due to parsing error.\n%s" % item)
     
     if len(oc) < 1:
         return ObjectContainer(header="No items to display", message="This directory appears to be empty.")
     else:
         return oc
+    
+
   
 ################################################################################
 @route('%s/snatched' % PREFIX)
@@ -126,19 +120,18 @@ def SnatchedMenu():
     cpResult = CP_API_CALL('movie.list',{'release_status':'snatched'})
         
     for item in cpResult['movies']:
-        try: fileList = item['library']['files']
-        except: fileList = []
-        thumb = GetPosterFromFileList(fileList, thumbDefault)
-        title = item['library']['info']['original_title']
-        try: summary = item['library']['info']['plot']
-        except: summary = summaryDefault
-        try: rating = item['library']['info']['rating']['imdb'][0]
-        except: rating = 'No Rating'
-        year = item['library']['info']['year']
-        dataID = item['id']
-        title = title + ' (%s)' % year
-        oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
-    
+        try:
+            info = item['info']
+            title = item['title']
+            try: summary = info['plot']
+            except: summary = summaryDefault
+            year = info['year']
+            dataID = item['_id']
+            title = title + ' (%s)' % year
+            oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb=Callback(GetPoster, images=info['images'])))
+        except:
+            Log("Skipping item due to parsing error.\n%s" % item)
+        
     if len(oc) < 1:
         return ObjectContainer(header="No items to display", message="This directory appears to be empty.")
     else:
@@ -154,18 +147,18 @@ def DownloadedMenu(offset=0):
     cpResult = CP_API_CALL('movie.list',{'status':'done'})
     
     for item in cpResult['movies'][offset:offset+20]:
-        try: fileList = item['library']['files']
-        except: fileList = []
-        thumb = GetPosterFromFileList(fileList, thumbDefault)
-        title = item['library']['info']['original_title']
-        try: summary = item['library']['info']['plot']
-        except: summary = summaryDefault
-        try: rating = item['library']['info']['rating']['imdb'][0]
-        except: rating = 'No Rating'
-        year = item['library']['info']['year']
-        dataID = item['id']
-        title = title + ' (%s)' % year
-        oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb=Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
+        try:
+            info = item['info']
+            title = item['title']
+            try: summary = info['plot']
+            except: summary = summaryDefault
+            year = info['year']
+            dataID = item['_id']
+            title = title + ' (%s)' % year
+            oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb=Callback(GetPoster, images=info['images'])))
+        except:
+            Log("Skipping item due to parsing error.\n%s" % item)
+        
     if len(cpResult['movies']) > (offset+20):
         oc.add(NextPageObject(key=Callback(DownloadedMenu, offset=offset+20)))
     
@@ -342,19 +335,15 @@ def CP_API_CALL(command, apiParm={}, apiFile='', apiCache=False):
     return cpResult
 
 ################################################################################
-@route('%s/poster' % PREFIX, fileList=dict, posterDefault=str)
-def GetPosterFromFileList(fileList,posterDefault):
-    poster = posterDefault
-    for item in fileList:
-        Log.Debug('Testing: '+item['path'])
-        #if item['type_id'] == 2: ''' not sure what the reason for this if statement was. Seems to work better without it. '''
-        #Log.Debug('Parsing: '+item['path'])
-        pathList = re.split('(\\\\|\/)', item['path'])
-        poster = CP_API_URL('file.cache',{},str(pathList[-1]),True) 
-        break
-    #Log.Debug("Found Poster: "+poster)
-    return poster
-
+@route('%s/poster' % PREFIX, images=dict)
+def GetPoster(images):
+    poster = None
+    try: poster = images['poster_original'][-1]
+    except: poster = images['poster']
+    if not poster:
+        poster = R('no_poster.jpg')
+    return Redirect(poster)
+    
 ################################################################################
 @route('%s/qualities' % PREFIX)
 def QualitySelectMenu(imdbID, suggestion):
