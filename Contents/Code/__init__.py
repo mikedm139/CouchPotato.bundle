@@ -53,8 +53,6 @@ def MainMenu():
     '''Populate main menu options'''
     oc = ObjectContainer(view_group="InfoList", no_cache=True)
     
-    update_available = UpdateAvailable()
-    
     if CP_API_KEY() != 'notfound':
         oc.add(DirectoryObject(key=Callback(MoviesMenu), title="Manage your movies list",
             summary="View and edit your CouchPotato wanted movies list",thumb=R(ICON)))
@@ -67,11 +65,6 @@ def MainMenu():
     
     oc.add(PrefsObject(title="Preferences", summary="Set prefs to allow plugin to connect to CouchPotato app",thumb=R(PREFS_ICON)))
     
-    if update_available:
-        Log.Debug('Update available')
-        oc.add(PopupDirectoryObject(key=Callback(UpdateMenu), title='CouchPotato update available',
-            summary='Update your CouchPotato install to the newest version', thumb=R(ICON)))
-
     return oc
 
 ################################################################################
@@ -82,9 +75,6 @@ def MoviesMenu():
 
     oc.add(DirectoryObject(key=Callback(WantedMenu), title="Wanted List",
         summary="CouchPotato is watching for these movies",thumb=R(ICON)))
-    if not Prefs['cpApiMode']:
-        oc.add(DirectoryObject(key=Callback(WaitingMenu), title="Waiting List",
-            summary='CouchPotato has found these movies but not in your defined "archive" quality, so it is still watching for better quality versions.', thumb=R(ICON)))
     oc.add(DirectoryObject(key=Callback(SnatchedMenu), title="Snatched List",
         summary="CouchPotato has found these movies and is waiting for them to be downloaded.", thumb=R(SNATCHED_ICON)))
     oc.add(DirectoryObject(key=Callback(DownloadedMenu), title="Downloaded",
@@ -96,84 +86,31 @@ def MoviesMenu():
 def WantedMenu():
 
     oc = ObjectContainer(view_group="InfoList", title2="Wanted", no_cache=True)
-    if not Prefs['cpApiMode']:
-        #CP v1 mode
-        '''Scrape wanted movies from CouchPotato and populate the list with results'''
-        url = Get_CP_URL()  + '/movie/'
-        wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader(), cacheTime=0)
-        
-        for item in wantedPage.xpath('//div[@class="item want"]'):
-            try: thumb = Get_CP_URL() + item.xpath('.//img[@class="thumbnail"]')[0].get('src')
-            except: thumb = ''
-            title = item.xpath('./span/span/h2')[0].text
-            try: summary = item.xpath('.//span[@class="overview"]')[0].text
-            except: summary = 'No Overview'
-            try: rating = item.xpath('./span[@class="rating"]')[0].text
-            except: rating = 'No Rating'
-            year = item.xpath('.//span[@class="year"]')[0].text
-            dataID = item.xpath('.')[0].get('data-id')
-            title = title + ' (%s)' % year
-            oc.add(PopupDirectoryObject(key=Callback(WantedList, dataID=dataID), title=title, summary=summary, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
-    else:
-        #CP v2 mode
-        thumbDefault = ''
-        summaryDefault = 'This movie is waiting to be available.'
-        cpResult = CP_API_CALL('movie.list',{'status':'active'})
-        
-        try: movies = cpResult['movies']
-        except: movies = {}
-        
-        for item in movies:
-            try: itemRelease = item['releases'][0]
-            except: itemRelease = {}
-            if not 'info' in itemRelease:
-                try: fileList = item['library']['files']
-                except: fileList = []
-                thumb = GetPosterFromFileList(fileList, thumbDefault)
-                try: title = item['library']['info']['original_title']
-                except: title = 'Loading...'
-                try: summary = item['library']['info']['plot']
-                except: summary = summaryDefault
-                try: rating = item['library']['info']['rating']['imdb'][0]
-                except: rating = 'No Rating'
-                year = item['library']['info']['year']
-                dataID = item['id']
-                title = title + ' (%s)' % year
-                oc.add(PopupDirectoryObject(key=Callback(WantedList, dataID=dataID), title=title, summary=summary, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
+    thumbDefault = ''
+    summaryDefault = 'This movie is waiting to be available.'
+    cpResult = CP_API_CALL('movie.list',{'status':'active'})
     
-    if len(oc) < 1:
-        return ObjectContainer(header="No items to display", message="This directory appears to be empty.")
-    else:
-        return oc
-  
-################################################################################
-@route('%s/waiting' % PREFIX)
-def WaitingMenu():
-
-    oc = ObjectContainer(view_group="InfoList", title2="Waiting", no_cache=True)
-    if not Prefs['cpApiMode']:
-        #CP v1 mode
-        '''Scrape waiting movies from CouchPotato and populate the list with results.
-            Note: waiting movies differ from wanted movies only by one tag'''
-        url = Get_CP_URL() + '/movie/'
-        wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader(), cacheTime=0)
+    try: movies = cpResult['movies']
+    except: movies = {}
         
-        for item in wantedPage.xpath('//div[@class="item waiting"]'):
-            try: thumb = Get_CP_URL() + item.xpath('.//img[@class="thumbnail"]')[0].get('src')
-            except: thumb = ''
-            title = item.xpath('./span/span/h2')[0].text
-            try: summary = item.xpath('.//span[@class="overview"]')[0].text
-            except: summary = 'No Overview'
-            try: rating = item.xpath('./span[@class="rating"]')[0].text
+    for item in movies:
+        try: itemRelease = item['releases'][0]
+        except: itemRelease = {}
+        if not 'info' in itemRelease:
+            try: fileList = item['library']['files']
+            except: fileList = []
+            thumb = GetPosterFromFileList(fileList, thumbDefault)
+            try: title = item['library']['info']['original_title']
+            except: title = 'Loading...'
+            try: summary = item['library']['info']['plot']
+            except: summary = summaryDefault
+            try: rating = item['library']['info']['rating']['imdb'][0]
             except: rating = 'No Rating'
-            year = item.xpath('.//span[@class="year"]')[0].text
-            dataID = item.xpath('.')[0].get('data-id')
+            year = item['library']['info']['year']
+            dataID = item['id']
             title = title + ' (%s)' % year
             oc.add(PopupDirectoryObject(key=Callback(WantedList, dataID=dataID), title=title, summary=summary, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
-    else:
-        #CP v2 mode
-        return WantedMenu()
-        
+    
     if len(oc) < 1:
         return ObjectContainer(header="No items to display", message="This directory appears to be empty.")
     else:
@@ -184,40 +121,23 @@ def WaitingMenu():
 def SnatchedMenu():
 
     oc = ObjectContainer(view_group="InfoList", title2="Snatched", no_cache=True)
-    if not Prefs['cpApiMode']:
-        #CP v1 mode
-        '''Scrape snatched movies from CouchPotato and populate the list with results'''
-        url = Get_CP_URL() + '/movie/'
-        wantedPage = HTML.ElementFromURL(url, errors='ignore', cacheTime=0)
-        thumb = R(SNATCHED_ICON)
-        summary = 'This movie should now appear in your downloads queue.'
+    thumbDefault = R(SNATCHED_ICON)
+    summaryDefault = 'This movie should now appear in your downloads queue.'
+    cpResult = CP_API_CALL('movie.list',{'release_status':'snatched'})
         
-        for item in wantedPage.xpath('//div[@id="snatched"]/span'):
-            #Log.Debug('parsing movie item')
-            title = item.text.replace('\n','').replace('\t','')
-            dataID = item.xpath('.//a[@class="reAdd"]')[0].get('data-id')
-            #Log.Debug('Parsing ' + title)
-            oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
-        
-    else:
-        #CP v2 mode
-        thumbDefault = R(SNATCHED_ICON)
-        summaryDefault = 'This movie should now appear in your downloads queue.'
-        cpResult = CP_API_CALL('movie.list',{'release_status':'snatched'})
-        
-        for item in cpResult['movies']:
-            try: fileList = item['library']['files']
-            except: fileList = []
-            thumb = GetPosterFromFileList(fileList, thumbDefault)
-            title = item['library']['info']['original_title']
-            try: summary = item['library']['info']['plot']
-            except: summary = summaryDefault
-            try: rating = item['library']['info']['rating']['imdb'][0]
-            except: rating = 'No Rating'
-            year = item['library']['info']['year']
-            dataID = item['id']
-            title = title + ' (%s)' % year
-            oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
+    for item in cpResult['movies']:
+        try: fileList = item['library']['files']
+        except: fileList = []
+        thumb = GetPosterFromFileList(fileList, thumbDefault)
+        title = item['library']['info']['original_title']
+        try: summary = item['library']['info']['plot']
+        except: summary = summaryDefault
+        try: rating = item['library']['info']['rating']['imdb'][0]
+        except: rating = 'No Rating'
+        year = item['library']['info']['year']
+        dataID = item['id']
+        title = title + ' (%s)' % year
+        oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
     
     if len(oc) < 1:
         return ObjectContainer(header="No items to display", message="This directory appears to be empty.")
@@ -229,42 +149,25 @@ def SnatchedMenu():
 def DownloadedMenu(offset=0):
 
     oc = ObjectContainer(view_group="InfoList", title2="Downloaded", no_cache=True)
-    if not Prefs['cpApiMode']:
-        #CP v1 mode
-        '''Scrape downloaded movies from CouchPotato and populate the list with results'''
-        url = Get_CP_URL() + '/movie/'
-        wantedPage = HTML.ElementFromURL(url, errors='ignore', headers=AuthHeader(), cacheTime=0)
-        thumb = R(DL_ICON)
-        summary = 'This movie should now be available in your Plex library.'
-        
-        for item in wantedPage.xpath('//div[@id="downloaded"]/span')[offset:offset+20]:
-            title = item.text.replace('\n','').replace('\t','')
-            #Log.Debug('Parsing ' + title)
-            dataID = item.xpath('./a')[1].get('data-id')
-            oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb = Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
-        if len(wantedPage.xpath('//div[@id="downloaded"]/span')) > (offset+20):
-            oc.add(NextPageObject(key=Callback(DownloadedMenu, offset=offset+20)))
-    else:
-        #CP v2 mode
-        thumbDefault = R(DL_ICON)
-        summaryDefault = 'This movie should now be available in your Plex library.'
-        cpResult = CP_API_CALL('movie.list',{'status':'done'})
-        
-        for item in cpResult['movies'][offset:offset+20]:
-            try: fileList = item['library']['files']
-            except: fileList = []
-            thumb = GetPosterFromFileList(fileList, thumbDefault)
-            title = item['library']['info']['original_title']
-            try: summary = item['library']['info']['plot']
-            except: summary = summaryDefault
-            try: rating = item['library']['info']['rating']['imdb'][0]
-            except: rating = 'No Rating'
-            year = item['library']['info']['year']
-            dataID = item['id']
-            title = title + ' (%s)' % year
-            oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb=Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
-        if len(cpResult['movies']) > (offset+20):
-            oc.add(NextPageObject(key=Callback(DownloadedMenu, offset=offset+20)))
+    thumbDefault = R(DL_ICON)
+    summaryDefault = 'This movie should now be available in your Plex library.'
+    cpResult = CP_API_CALL('movie.list',{'status':'done'})
+    
+    for item in cpResult['movies'][offset:offset+20]:
+        try: fileList = item['library']['files']
+        except: fileList = []
+        thumb = GetPosterFromFileList(fileList, thumbDefault)
+        title = item['library']['info']['original_title']
+        try: summary = item['library']['info']['plot']
+        except: summary = summaryDefault
+        try: rating = item['library']['info']['rating']['imdb'][0]
+        except: rating = 'No Rating'
+        year = item['library']['info']['year']
+        dataID = item['id']
+        title = title + ' (%s)' % year
+        oc.add(PopupDirectoryObject(key=Callback(SnatchedList, dataID=dataID), title=title, summary=summary, thumb=Resource.ContentsOfURLWithFallback(url=thumb, fallback='no_poster.jpg')))
+    if len(cpResult['movies']) > (offset+20):
+        oc.add(NextPageObject(key=Callback(DownloadedMenu, offset=offset+20)))
     
     if len(oc) < 1:
         return ObjectContainer(header="No items to display", message="This directory appears to be empty.")
@@ -285,81 +188,27 @@ def WantedList(dataID):
 def SnatchedList(dataID):
     '''Display an action-context menu for the selected movie'''
     oc = ObjectContainer()
-    if not Prefs['cpApiMode']:
-        oc.add(DirectoryObject(key=Callback(DownloadComplete, dataID=dataID), title='Mark Download Complete'))
-        oc.add(DirectoryObject(key=Callback(FailedRetry, dataID=dataID), title='Failed - Try Again'))
     oc.add(DirectoryObject(key=Callback(FailedFindNew, dataID=dataID), title='Failed - Find New Source'))
     return oc
 
 ################################################################################
 @route('%s/refresh' % PREFIX)
 def ForceRefresh(dataID):
-
-    if not Prefs['cpApiMode']:
-        #CP v1 mode
-        url = Get_CP_URL() + '/cron/forceSingle/?id=' + dataID
-        #Log.Debug('Forcecheck url: ' + url)
-        result = HTTP.Request(url, headers=AuthHeader()).content
-    else:
-        #CP v2 mode
-        cpResult = CP_API_CALL('movie.refresh',{'id':dataID})
+    cpResult = CP_API_CALL('movie.refresh',{'id':dataID})
     return ObjectContainer(header="CouchPotato", message=L('Forcing refresh/search'), no_history=True)
 
 ################################################################################
 @route('%s/remove' % PREFIX)
 def RemoveMovie(dataID):
     '''Tell CouchPotato to remove the selected movie from the wanted list'''
-    if not Prefs['cpApiMode']:
-        #CP v1 mode
-        url = Get_CP_URL() + '/movie/delete/?id=' + dataID
-        #Log.Debug('DeleteMovie url: ' + url)
-        result = HTTP.Request(url, headers=AuthHeader()).content
-    else:
-        #CP v2 mode
-        cpResult = CP_API_CALL('movie.delete',{'id':dataID})
-        
+    cpResult = CP_API_CALL('movie.delete',{'id':dataID})
     return ObjectContainer(header="CouchPotato", message=L('Deleting from wanted list'), no_history=True)
-
-################################################################################
-@route('%s/completed' % PREFIX)
-def DownloadComplete(dataID):
-    '''Tell CouchPotato to mark the selected movie as a completed download'''
-    if not Prefs['cpApiMode']:
-        #CP v1 mode
-        url = Get_CP_URL() + '/movie/downloaded/?id=' + dataID
-        #Log.Debug('Downloaded url: ' + url)
-        result = HTTP.Request(url, headers=AuthHeader()).content
-        return ObjectContainer(header="CouchPotato", message=L('Marked Download Complete'), no_history=True)
-    else:
-        #CP v2 mode
-        return ObjectContainer(header="CouchPotato", message=L('Operation not supported in CP v2'), no_history=True)
-
-################################################################################
-@route('%s/retry' % PREFIX)
-def FailedRetry(dataID):
-    '''Tell CouchPotato to mark the selected movie as a failed download and retry using the same file'''
-    if not Prefs['cpApiMode']:
-        #CP v1 mode
-        url = Get_CP_URL() + '/movie/reAdd/?id=' + dataID
-        #Log.Debug('Retry url: ' + url)
-        result = HTTP.Request(url, headers=AuthHeader()).content
-        return ObjectContainer(header="CouchPotato", message=L('Downloaded re-added to queue'), no_history=True)
-    else:
-        #CP v2 mode
-        return ObjectContainer(header="CouchPotato", message=L('Operation not yet supported CP v2'), no_history=True)
 
 ################################################################################
 @route('%s/findnew' % PREFIX)
 def FailedFindNew(dataID):
     '''Tell CouchPotato to mark the selected movie as a failed download and find a different file to retry'''
-    if not Prefs['cpApiMode']:
-        #CP v1 mode
-        url = Get_CP_URL() + '/movie/reAdd/?id=' + dataID + '&failed=true'
-        #Log.Debug('FindNew url: ' + url)
-        result = HTTP.Request(url, headers=AuthHeader()).content
-    else:
-        #CP v2 mode
-        cpResult = CP_API_CALL('searcher.try_next',{'id':dataID})
+    cpResult = CP_API_CALL('searcher.try_next',{'id':dataID})
     return ObjectContainer(header="CouchPotato", message=L('Movie re-added to "Wanted" list'), no_history=True)
 
 ################################################################################
@@ -418,80 +267,12 @@ def AddMovieMenu(imdbID, suggestion=True):
 @route('%s/add' % PREFIX)
 def AddMovie(imdbID, suggestion=True):
     '''Tell CouchPotato to add the selected movie to the wanted list'''
-    #CP v2 mode
     cpResult = CP_API_CALL('movie.add',{'identifier':imdbID})
     if suggestion:
         if cpResult['success']:
             removeFromSuggestions = CP_API_CALL('suggestion.ignore',{'imdb':imdbID, 'remove_only':True})
     
     return ObjectContainer(header="CouchPotato", message=L("Added to Wanted list."), no_history=True)
-
-################################################################################
-@route('%s/updateavailable' % PREFIX)
-def UpdateAvailable():
-    '''Check for updates to CouchPotato using the update flag on the webUI'''
-    if not Prefs['cpApiMode']:
-        #CP v1 mode
-        Log.Debug('Running function "UpdateAvailable()"')
-        url = Get_CP_URL() + '/movie/'
-        
-        try:
-            cpPage = HTML.ElementFromURL(url, errors='ignore', cacheTime=0, headers=AuthHeader())
-        except:
-            Log.Debug('Unable to access CouchPotato webserver. Please check plugin preferences.')
-            return False
-        try:
-            Log.Debug(cpPage.xpath('//span[@class="updateAvailable git"]')[0].text)
-            if cpPage.xpath('//span[@class="updateAvailable git"]')[0].text == 'Update (':
-                cpUpdate = True
-            else:
-                cpUpdate = False
-        except:
-            cpUpdate = False
-        #Log.Debug(cpUpdate)
-    else:
-        #CP v2 mode
-        Log.Debug('Running function "UpdateAvailable()"')
-        try:
-            cpResult = CP_API_CALL('updater.check')
-        except:
-            Log.Debug('Unable to access CouchPotato webserver. Please check plugin preferences.')
-            return False
-        try: cpUpdate = cpResult['update_available']
-        except: cpUpdate = False
-        #Log.Debug(cpUpdate)
-    
-    return cpUpdate
-    
-################################################################################
-@route('%s/update' % PREFIX)
-def UpdateMenu():
-    '''Display the CouchPotato Updater popup menu'''
-    
-    oc = ObjectContainer()
-    oc.add(PopupDirectoryObject(key=Callback(UpdateNow), title='Update CouchPotato Now'))
-    
-    return oc
-
-################################################################################
-@route('%s/updatenow' % PREFIX)
-def UpdateNow():
-    '''Tell CouchPotato to run the updater'''
-    if not Prefs['cpApiMode']:
-        #CP v1 mode
-        url = Get_CP_URL()  + '/config/update/'
-        try:
-            runUpdate = HTTP.Request(url, errors='ignore', headers=AuthHeader()).content
-        except:
-            pass
-    else:
-        #CP v2 mode
-        try:
-            cpResult = CP_API_CALL('manage.update')
-        except:
-            pass
-    time.sleep(10)
-    return ObjectContainer(header='CouchPotato', message=L('Update completed successfully'))
 
 ################################################################################
 @route('%s/cpurl' % PREFIX)
@@ -591,16 +372,9 @@ def QualitySelectMenu(imdbID, suggestion):
     return oc
 
 ################################################################################
-@route('%s/upgradetime' % PREFIX)
-def TimeToUpgrade():
-    return ObjectContainer(header="Time to upgrade to CouchPotato v2", message="Support for CouchPotato v1 is going away soon.")
-
-################################################################################
 @route('%s/addquality' % PREFIX)
 def AddWithQuality(imdbID, quality, suggestion):   
-    '''tell CouchPotato to add the given movie with the given quality (rather than
-        the defaultQuality)'''
-    #CP v2 mode   
+    '''tell CouchPotato to add the given movie with the given quality (rather than the defaultQuality)'''
     cpResult = CP_API_CALL('movie.add',{'identifier':imdbID, 'profile_id':quality})
     if suggestion:
         if cpResult['success']:
@@ -643,7 +417,6 @@ def SuggestionMenu(imdbID, title, year):
 @route('%s/suggestions/ignore' % PREFIX)
 def IgnoreSuggestion(imdbID, seenIt=None):
     '''tell CouchPotato to remove the given movie from the list of suggestions'''
-    #CP v2 mode
     if seenIt:
         cpResult = CP_API_CALL('suggestion.ignore',{'imdb':imdbID, 'mark_seen':1})
         return ObjectContainer(header="CouchPotato", message=L("Suggestion removed from list."), no_history=True)
