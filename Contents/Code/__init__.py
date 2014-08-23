@@ -346,7 +346,7 @@ def GetPoster(images):
     
 ################################################################################
 @route('%s/qualities' % PREFIX)
-def QualitySelectMenu(imdbID, suggestion):
+def QualitySelectMenu(imdbID, suggestion=None):
     '''provide an option to select a quality other than default before adding a movie'''
     oc = ObjectContainer()
     #CP v2 mode
