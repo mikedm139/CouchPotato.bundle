@@ -354,7 +354,7 @@ def QualitySelectMenu(imdbID, suggestion=None):
         
     for quality in cpResult['list']:
         name = quality['label']
-        value = quality['id']
+        value = quality['_id']
         oc.add(DirectoryObject(key=Callback(AddWithQuality, imdbID=imdbID, quality=value, suggestion=suggestion),
             title=name, summary='Add movie with '+name+' quality profile', thumb=R(ICON)))
         
